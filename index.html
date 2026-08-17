@@ -509,6 +509,57 @@
 
   .checkbox-row small{font-size:.72rem;color:var(--ink-muted);display:block;}
 
+  /* ---------- Lots ---------- */
+  .lot-fields{display:flex;flex-direction:column;gap:.7rem;}
+  .lot-fields[hidden]{display:none;}
+  .lot-cout{
+    margin:0;padding:.5rem .65rem;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:9px;
+    font-size:.8rem;color:var(--ink-muted);
+  }
+  .lot-cout[hidden]{display:none;}
+  .lot-cout strong{color:var(--accent-strong);font-variant-numeric:tabular-nums;}
+  .lot-mode{
+    border:1px solid var(--border);border-radius:9px;
+    padding:.6rem .65rem;margin:0;
+    display:flex;flex-direction:column;gap:.5rem;
+  }
+  .lot-mode legend{padding:0 .3rem;color:var(--ink-muted);}
+  .radio-row{display:flex;align-items:flex-start;gap:.55rem;flex-direction:row;}
+  .radio-row input{width:auto;margin-top:.15rem;flex-shrink:0;}
+  .radio-row span{font-size:.85rem;color:var(--ink);}
+  .radio-row small{display:block;font-size:.72rem;color:var(--ink-muted);margin-top:.1rem;}
+
+  .form-erreur{
+    margin:0;padding:.55rem .65rem;border-radius:9px;
+    background:var(--surface-2);border:1px solid var(--loss);
+    color:var(--loss);font-size:.8rem;line-height:1.45;
+  }
+  .form-erreur[hidden]{display:none;}
+
+  .btn-partiel{width:100%;padding:.55rem .6rem;border-color:var(--accent);color:var(--accent-strong);}
+  .btn-partiel[hidden]{display:none;}
+  .partial-contexte{
+    margin:0;font-size:.82rem;color:var(--ink-muted);
+    background:var(--surface-2);border:1px solid var(--border);
+    border-radius:9px;padding:.55rem .65rem;line-height:1.5;
+  }
+  .partial-contexte strong{color:var(--ink);}
+  .partial-apercu{
+    margin:0;font-size:.82rem;color:var(--ink-muted);
+    border-top:1px dashed var(--border);padding-top:.6rem;line-height:1.6;
+  }
+  .partial-apercu strong{font-variant-numeric:tabular-nums;}
+  .partial-apercu strong.profit{color:var(--profit);}
+  .partial-apercu strong.loss{color:var(--loss);}
+  .partial-apercu.erreur{color:var(--loss);}
+
+  .tag.tag-lot{
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-weight:600;
+  }
+
   /* ---------- Provision fiscale ---------- */
   .fiscal-controls{display:flex;gap:.6rem;margin-bottom:.2rem;}
   .fiscal-controls label{flex:1;}
@@ -963,6 +1014,30 @@
         </label>
       </div>
 
+      <label class="checkbox-row">
+        <input type="checkbox" id="fLot">
+        <span>Acheté en lot <small>(plusieurs objets pour un seul prix)</small></span>
+      </label>
+
+      <div class="lot-fields" id="lotFields" hidden>
+        <label>
+          <span class="lbl">Nombre d'unités</span>
+          <input type="number" id="fQuantite" min="2" step="1" inputmode="numeric" placeholder="Ex. 5">
+        </label>
+        <p class="lot-cout" id="lotCout" hidden></p>
+        <fieldset class="lot-mode" id="lotMode">
+          <legend class="lbl">À l'enregistrement</legend>
+          <label class="radio-row">
+            <input type="radio" name="lotMode" value="garder" checked>
+            <span>Garder une seule ligne <small>Tu vendras par lot ou à l'unité au fur et à mesure.</small></span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="lotMode" value="eclater">
+            <span>Créer un article par unité <small>Pour ajuster ensuite le prix de chacun séparément.</small></span>
+          </label>
+        </fieldset>
+      </div>
+
       <p class="price-hint" id="priceHint" hidden>
         <span>Prix conseillé (+40&nbsp;%) : <span class="target" id="priceTarget">0,00 €</span></span>
         <button type="button" class="use-target" id="useTargetBtn">Utiliser</button>
@@ -994,12 +1069,18 @@
         </button>
       </div>
 
+      <button type="button" class="btn-line btn-partiel" id="partialBtn" hidden>
+        Vendre une partie du lot
+      </button>
+
       <div class="retours-info" id="retoursInfo" hidden></div>
 
       <div class="estimate" id="estimateRow" hidden>
         <span>Bénéfice estimé</span>
         <strong id="estimateValue">0 €</strong>
       </div>
+
+      <p class="form-erreur" id="formErreur" hidden></p>
 
       <input type="hidden" id="fId">
       <div class="form-actions">
@@ -1019,6 +1100,37 @@
         <button type="button" class="btn-confirm" id="confirmOk">Supprimer</button>
       </div>
     </div>
+  </div>
+
+  <div id="partialSheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-partial-cancel></div>
+    <form class="sheet-panel" id="partialForm">
+      <div class="sheet-head">
+        <h2>Vendre une partie du lot</h2>
+        <button type="button" class="icon-btn" data-partial-cancel aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="partial-contexte" id="partialContexte"></p>
+      <div class="field-row">
+        <label>
+          <span class="lbl">Unités vendues</span>
+          <input type="number" id="pQuantite" min="1" step="1" inputmode="numeric" required>
+        </label>
+        <label>
+          <span class="lbl">Prix de vente</span>
+          <input type="number" id="pPrix" min="0" step="0.01" inputmode="decimal" required placeholder="0,00">
+        </label>
+      </div>
+      <label>
+        <span class="lbl">Date de vente</span>
+        <input type="date" id="pDate" required>
+      </label>
+      <p class="partial-apercu" id="partialApercu"></p>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Enregistrer la vente</button>
+      </div>
+    </form>
   </div>
 
   <div id="reportSheet" class="sheet" hidden>
@@ -1129,6 +1241,63 @@
 
   function prixCible(prixAchat){
     return Math.round(prixAchat * (1 + MARGE_CIBLE) * 100) / 100;
+  }
+
+  function arrondi(n){ return Math.round(n * 100) / 100; }
+
+  // Lots : un article peut représenter plusieurs unités achetées pour un prix
+  // global. prixAchat porte toujours le coût des unités encore rattachées à la
+  // ligne ; vendre une partie du lot scinde l'enregistrement en deux.
+  function quantiteDe(item){
+    var q = parseInt(item.quantite, 10);
+    return (q && q > 1) ? q : 1;
+  }
+  function estLot(item){ return quantiteDe(item) > 1; }
+  function coutUnitaire(item){ return item.prixAchat / quantiteDe(item); }
+
+  // Répartit un montant en q parts au centime près : la somme des parts est
+  // toujours exactement égale au montant de départ (60 € en 7 → pas de perte).
+  function repartir(montant, q){
+    var cents = Math.round(montant * 100);
+    var base = Math.floor(cents / q);
+    var reste = cents - base * q;
+    var parts = [];
+    for(var i = 0; i < q; i++){
+      parts.push((base + (i < reste ? 1 : 0)) / 100);
+    }
+    return parts;
+  }
+
+  function eclaterLot(item, q){
+    var partsAchat = repartir(item.prixAchat, q);
+    var vendu = item.prixRevente !== null && item.prixRevente !== undefined;
+    var partsVente = vendu ? repartir(item.prixRevente, q) : null;
+    var enfants = [];
+    for(var i = 0; i < q; i++){
+      enfants.push({
+        id: uid() + "-" + i,
+        nom: item.nom + " " + (i + 1) + "/" + q,
+        categorie: item.categorie,
+        canal: item.canal,
+        vendeur: item.vendeur,
+        prixAchat: partsAchat[i],
+        dateAchat: item.dateAchat,
+        prixRevente: vendu ? partsVente[i] : null,
+        dateRevente: vendu ? item.dateRevente : null,
+        annule: item.annule,
+        quantite: 1,
+        retours: [],
+        photo: item.photo
+      });
+    }
+    return enfants;
+  }
+
+  function alerteFormulaire(msg){
+    var el = document.getElementById("formErreur");
+    if(!msg){ el.hidden = true; return; }
+    el.textContent = msg;
+    el.hidden = false;
   }
 
   // Confirmation interne : confirm() du navigateur est bloqué dans un cadre sécurisé.
@@ -1435,7 +1604,10 @@
         var p = profitOf(it);
         amountHtml = '<div class="item-amount"><span class="amt '+(p>=0?"profit":"loss")+'">'+fmtMoney(p)+'</span><span class="status">vendu</span></div>';
       } else {
-        amountHtml = '<div class="item-amount"><span class="amt">'+fmtMoney(it.prixAchat)+'</span><span class="status">viser '+fmtMoney(prixCible(it.prixAchat))+'</span></div>';
+        // Sur un lot, le prix à viser parle davantage à l'unité.
+        amountHtml = '<div class="item-amount"><span class="amt">'+fmtMoney(it.prixAchat)+'</span>'+
+          '<span class="status">viser '+fmtMoney(prixCible(coutUnitaire(it)))+
+          (estLot(it) ? '/u' : '')+'</span></div>';
       }
 
       btn.innerHTML =
@@ -1444,6 +1616,7 @@
           '<span class="item-name">'+escapeHtml(it.nom)+'</span>'+
           '<div class="item-meta"><span class="tag">'+escapeHtml(it.categorie)+'</span>'+
             (annule ? '<span class="tag tag-annule">annulé</span>' : '')+
+            (estLot(it) ? '<span class="tag tag-lot">×'+quantiteDe(it)+'</span>' : '')+
             (aRetours(it) ? '<span class="tag tag-retour">retour</span>' : '')+
             '<span>'+(sold ? it.dateRevente : it.dateAchat)+'</span></div>'+
         '</div>'+
@@ -1511,8 +1684,15 @@
     soldCheckbox.checked = false;
     cancelledCheckbox.checked = false;
     document.getElementById("returnBtn").hidden = true;
+    document.getElementById("partialBtn").hidden = true;
     document.getElementById("retoursInfo").hidden = true;
     document.getElementById("estimateRow").hidden = true;
+    lotCheckbox.checked = false;
+    lotFields.hidden = true;
+    quantiteInput.value = "";
+    alerteFormulaire(null);
+    // Le choix « garder / éclater » ne vaut qu'à la création.
+    document.getElementById("lotMode").hidden = false;
 
     if(id){
       var item = loadItems().find(function(it){ return it.id === id; });
@@ -1533,6 +1713,12 @@
         photoPlaceholder.hidden = true;
         photoRemoveBtn.hidden = false;
       }
+      if(estLot(item)){
+        lotCheckbox.checked = true;
+        lotFields.hidden = false;
+        quantiteInput.value = quantiteDe(item);
+        document.getElementById("lotMode").hidden = true;
+      }
       if(estAnnule(item)){
         cancelledCheckbox.checked = true;
       } else if(isSold(item)){
@@ -1543,6 +1729,8 @@
         // Le retour ne se propose que sur une vente déjà enregistrée.
         document.getElementById("returnBtn").hidden = false;
       }
+      // Vente partielle : seulement sur un lot encore en stock.
+      document.getElementById("partialBtn").hidden = !(estLot(item) && enStock(item));
       afficherRetours(item);
     } else {
       document.getElementById("formTitle").textContent = "Ajouter un article";
@@ -1605,6 +1793,117 @@
     );
   });
 
+  // ---------- Vente d'une partie d'un lot ----------
+  // On scinde l'enregistrement : une ligne vendue pour les unités parties, et
+  // le lot d'origine réduit d'autant. Tout le reste de l'app (bénéfices,
+  // retours, rapports) continue de fonctionner sans cas particulier.
+  var partialSheet = document.getElementById("partialSheet");
+  var partialItemId = null;
+
+  function ouvrirVentePartielle(item){
+    partialItemId = item.id;
+    var q = quantiteDe(item);
+    document.getElementById("partialContexte").innerHTML =
+      "<strong>" + escapeHtml(item.nom) + "</strong> : " + q + " unités en stock pour " +
+      fmtMoney(item.prixAchat) + ", soit " + fmtMoney(coutUnitaire(item)) + " l'unité.";
+    document.getElementById("pQuantite").value = "1";
+    document.getElementById("pQuantite").max = q - 1;
+    document.getElementById("pPrix").value = "";
+    document.getElementById("pDate").value = todayISO();
+    majApercuPartiel();
+    partialSheet.hidden = false;
+  }
+
+  function majApercuPartiel(){
+    var apercu = document.getElementById("partialApercu");
+    var item = loadItems().find(function(it){ return it.id === partialItemId; });
+    if(!item) return;
+    var q = quantiteDe(item);
+    var n = parseInt(document.getElementById("pQuantite").value, 10);
+    var prix = parseFloat(document.getElementById("pPrix").value);
+
+    if(!n || n < 1 || n >= q){
+      apercu.className = "partial-apercu erreur";
+      apercu.textContent = "Indique entre 1 et " + (q - 1) + " unités. " +
+        "Pour vendre tout le lot d'un coup, ferme cette fenêtre et coche « Déjà revendu ».";
+      return;
+    }
+    var parts = repartir(item.prixAchat, q);
+    var coutVendu = 0;
+    for(var i = 0; i < n; i++) coutVendu += parts[i];
+    coutVendu = arrondi(coutVendu);
+    var reste = arrondi(item.prixAchat - coutVendu);
+
+    var txt = "Coût imputé aux " + n + " unité(s) : <strong>" + fmtMoney(coutVendu) + "</strong>. " +
+              "Il te restera " + (q - n) + " unité(s) pour <strong>" + fmtMoney(reste) + "</strong>.";
+    if(prix && prix > 0){
+      var benef = arrondi(prix - coutVendu);
+      txt += "<br>Bénéfice de cette vente : <strong class=\"" + (benef >= 0 ? "profit" : "loss") + "\">" +
+             fmtMoney(benef) + "</strong>.";
+    }
+    apercu.className = "partial-apercu";
+    apercu.innerHTML = txt;
+  }
+
+  ["pQuantite","pPrix"].forEach(function(id){
+    document.getElementById(id).addEventListener("input", majApercuPartiel);
+  });
+
+  partialSheet.querySelectorAll("[data-partial-cancel]").forEach(function(el){
+    el.addEventListener("click", function(){ partialSheet.hidden = true; });
+  });
+
+  document.getElementById("partialBtn").addEventListener("click", function(){
+    var id = document.getElementById("fId").value;
+    var item = loadItems().find(function(it){ return it.id === id; });
+    if(item) ouvrirVentePartielle(item);
+  });
+
+  document.getElementById("partialForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var items = loadItems();
+    var idx = items.findIndex(function(it){ return it.id === partialItemId; });
+    if(idx < 0) return;
+    var item = items[idx];
+    var q = quantiteDe(item);
+    var n = parseInt(document.getElementById("pQuantite").value, 10);
+    var prix = parseFloat(document.getElementById("pPrix").value);
+    var date = document.getElementById("pDate").value;
+    if(!n || n < 1 || n >= q || !date){ majApercuPartiel(); return; }
+    if(isNaN(prix) || prix < 0) prix = 0;
+
+    var parts = repartir(item.prixAchat, q);
+    var coutVendu = 0;
+    for(var i = 0; i < n; i++) coutVendu += parts[i];
+    coutVendu = arrondi(coutVendu);
+
+    var ligneVendue = {
+      id: uid(),
+      nom: item.nom + " (" + n + " sur " + q + ")",
+      categorie: item.categorie,
+      canal: item.canal,
+      vendeur: item.vendeur,
+      prixAchat: coutVendu,
+      dateAchat: item.dateAchat,
+      prixRevente: prix,
+      dateRevente: date,
+      annule: false,
+      quantite: n,
+      retours: [],
+      photo: item.photo
+    };
+
+    item.prixAchat = arrondi(item.prixAchat - coutVendu);
+    item.quantite = q - n;
+
+    items.splice(idx + 1, 0, ligneVendue);
+    saveItems(items);
+
+    partialSheet.hidden = true;
+    closeForm();
+    renderAll();
+  });
+
   function closeForm(){ sheet.hidden = true; }
 
   document.getElementById("fab").addEventListener("click", function(){ openForm(null); });
@@ -1637,6 +1936,32 @@
     soldCheckbox.disabled = cancelledCheckbox.checked;
   }
 
+  var lotCheckbox = document.getElementById("fLot");
+  var lotFields = document.getElementById("lotFields");
+  var quantiteInput = document.getElementById("fQuantite");
+
+  function majLot(){
+    lotFields.hidden = !lotCheckbox.checked;
+    var bloc = document.getElementById("lotCout");
+    var q = parseInt(quantiteInput.value, 10);
+    var prix = parseFloat(document.getElementById("fBuyPrice").value);
+    if(!lotCheckbox.checked || !q || q < 2 || !prix || prix <= 0){
+      bloc.hidden = true;
+      return;
+    }
+    var unite = arrondi(prix / q);
+    bloc.innerHTML = "Soit <strong>" + fmtMoney(unite) + "</strong> par unité, " +
+                     "à viser <strong>" + fmtMoney(prixCible(unite)) + "</strong> pièce.";
+    bloc.hidden = false;
+  }
+
+  lotCheckbox.addEventListener("change", function(){
+    if(lotCheckbox.checked && !quantiteInput.value) quantiteInput.value = "2";
+    majLot();
+    updateEstimate();
+  });
+  quantiteInput.addEventListener("input", majLot);
+
   function updatePriceHint(){
     var hint = document.getElementById("priceHint");
     var buy = parseFloat(document.getElementById("fBuyPrice").value);
@@ -1658,6 +1983,7 @@
 
   function updateEstimate(){
     updatePriceHint();
+    majLot();
     var row = document.getElementById("estimateRow");
     if(!soldCheckbox.checked){ row.hidden = true; return; }
     var buy = parseFloat(document.getElementById("fBuyPrice").value) || 0;
@@ -1717,6 +2043,16 @@
     var existant = loadItems().find(function(it){ return it.id === id; });
     var histo = existant ? retoursDe(existant) : [];
 
+    var quantite = 1;
+    if(lotCheckbox.checked){
+      var q = parseInt(quantiteInput.value, 10);
+      if(!q || q < 2){
+        alerteFormulaire("Indique au moins 2 unités pour un lot, ou décoche « Acheté en lot ».");
+        return;
+      }
+      quantite = q;
+    }
+
     var item = {
       id: id,
       nom: document.getElementById("fName").value.trim(),
@@ -1728,13 +2064,25 @@
       prixRevente: sold ? (parseFloat(document.getElementById("fSellPrice").value) || 0) : null,
       dateRevente: sold ? document.getElementById("fSellDate").value : null,
       annule: annule,
+      quantite: quantite,
       retours: histo,
       photo: currentPhoto
     };
 
     var items = loadItems();
     var idx = items.findIndex(function(it){ return it.id === id; });
-    if(idx >= 0) items[idx] = item; else items.push(item);
+
+    // Éclatement : uniquement à la création, et seulement si demandé.
+    var modeEclater = idx < 0 && quantite > 1 &&
+      document.querySelector('input[name="lotMode"]:checked').value === "eclater";
+
+    if(modeEclater){
+      items = items.concat(eclaterLot(item, quantite));
+    } else if(idx >= 0){
+      items[idx] = item;
+    } else {
+      items.push(item);
+    }
     saveItems(items);
     rememberCategory(categorie);
     rememberCanal(canal);
@@ -1917,7 +2265,7 @@
 
   function buildCsv(items){
     var lignes = [];
-    lignes.push(["Nom","Catégorie","Acheté via","Vendeur","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut","Ventes annulées"].map(csvCell).join(";"));
+    lignes.push(["Nom","Catégorie","Acheté via","Vendeur","Quantité","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut","Ventes annulées"].map(csvCell).join(";"));
 
     var tries = items.slice().sort(function(a,b){
       var da = a.dateRevente || a.dateAchat;
@@ -1933,6 +2281,7 @@
         csvCell(it.categorie),
         csvCell(it.canal || ""),
         csvCell(it.vendeur || ""),
+        quantiteDe(it),
         csvNum(it.prixAchat),
         csvCell(it.dateAchat),
         annule ? "" : csvNum(prixCible(it.prixAchat)),
@@ -2267,7 +2616,7 @@
              '</tr></thead><tbody>');
       ventes.forEach(function(m){
         h.push('<tr>'+
-          '<td>'+escapeHtml(m.item.nom)+'</td>'+
+          '<td>'+escapeHtml(m.item.nom)+(estLot(m.item)?' <small>×'+quantiteDe(m.item)+'</small>':'')+'</td>'+
           '<td>'+escapeHtml(m.item.categorie)+'</td>'+
           '<td>'+escapeHtml(dateCourte(m.date))+'</td>'+
           '<td class="num">'+fmtMoney(m.prixAchat)+'</td>'+
@@ -2293,7 +2642,7 @@
              '</tr></thead><tbody>');
       retours.forEach(function(m){
         h.push('<tr>'+
-          '<td>'+escapeHtml(m.item.nom)+'</td>'+
+          '<td>'+escapeHtml(m.item.nom)+(estLot(m.item)?' <small>×'+quantiteDe(m.item)+'</small>':'')+'</td>'+
           '<td>'+escapeHtml(m.item.categorie)+'</td>'+
           '<td>'+escapeHtml(dateCourte(m.venteDu))+'</td>'+
           '<td>'+escapeHtml(dateCourte(m.date))+'</td>'+
