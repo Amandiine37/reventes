@@ -1683,16 +1683,33 @@
 
   document.getElementById("importBtn").addEventListener("click", function(){ importFile.click(); });
 
+  // Une sauvegarde recopiée à la main (mail, note) revient souvent abîmée : le
+  // logiciel remplace les espaces d'indentation par des espaces insécables, et
+  // ajoute parfois un marqueur d'encodage. Les deux font échouer la lecture.
+  function lireSauvegarde(texte){
+    if(typeof texte !== "string") return null;
+    var essais = [
+      texte,
+      texte
+        .replace(/^\uFEFF/, "")                        // marqueur d'encodage en tete
+        .replace(/[\u00A0\u202F]/g, " ")               // espaces insecables
+        .replace(/[\u2000-\u200A\u2028\u2029\u3000]/g, " ") // espaces typographiques
+        .replace(/[\u200B\u200C\u200D\u200E\u200F]/g, "")  // caracteres invisibles
+    ];
+    for(var i = 0; i < essais.length; i++){
+      try{ return JSON.parse(essais[i]); }catch(e){}
+    }
+    return null;
+  }
+
   importFile.addEventListener("change", function(){
     var file = importFile.files[0];
     if(!file) return;
     var reader = new FileReader();
     reader.onload = function(e){
-      var data;
-      try{
-        data = JSON.parse(e.target.result);
-      }catch(err){
-        showBackupStatus("Ce fichier n'est pas une sauvegarde valide.", "err");
+      var data = lireSauvegarde(e.target.result);
+      if(!data){
+        showBackupStatus("Fichier illisible. S'il est passé par un mail, le texte a pu être abîmé au collage : réessaie avec le fichier téléchargé directement par l'app.", "err");
         importFile.value = "";
         return;
       }
