@@ -507,6 +507,183 @@
   }
   input[type="file"]{display:none;}
 
+  /* ---------- Rapport mensuel ---------- */
+  .report-controls{display:flex;gap:.5rem;flex-wrap:wrap;}
+  .report-controls select{flex:1;min-width:150px;}
+  .report-controls .btn-line{flex:1;min-width:150px;padding:.55rem .6rem;}
+
+  .report-panel{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    max-width:520px;
+    margin:0 auto;
+    max-height:92dvh;
+    overflow-y:auto;
+    background:var(--surface);
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -10px 30px rgba(0,0,0,.2);
+  }
+  .report-actions{
+    display:flex;gap:.6rem;align-items:center;
+    padding:.8rem .9rem;
+    position:sticky;top:0;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    z-index:2;
+  }
+  .report-actions .btn-line{flex:0 0 auto;}
+  .report-actions .btn-primary{flex:1;padding:.6rem;}
+
+  .report{
+    padding:1.1rem .95rem 1.6rem;
+    color:var(--ink);
+    font-size:.82rem;
+    line-height:1.5;
+  }
+  .report-head{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    gap:1rem;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:.7rem;
+    margin-bottom:1rem;
+  }
+  .report-head h1{
+    font-family:var(--font-display);
+    font-size:1.35rem;
+    margin:0 0 .15rem;
+    font-weight:600;
+    letter-spacing:.2px;
+  }
+  .report-periode{
+    font-size:.95rem;
+    color:var(--accent-strong);
+    font-weight:600;
+    text-transform:capitalize;
+  }
+  .report-meta{
+    font-size:.7rem;
+    color:var(--ink-muted);
+    text-align:right;
+    white-space:nowrap;
+  }
+
+  .report h2{
+    font-family:var(--font-display);
+    font-size:.98rem;
+    margin:1.3rem 0 .5rem;
+    font-weight:600;
+    letter-spacing:.2px;
+  }
+
+  .report-kpis{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:.5rem;
+  }
+  .report-kpi{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:.55rem .65rem;
+    background:var(--surface-2);
+  }
+  .report-kpi .k-label{
+    display:block;
+    font-size:.64rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-muted);
+    margin-bottom:.2rem;
+  }
+  .report-kpi .k-value{
+    font-family:var(--font-display);
+    font-size:1.12rem;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .report-kpi .k-value.profit{color:var(--profit);}
+  .report-kpi .k-value.loss{color:var(--loss);}
+
+  .report-table-wrap{overflow-x:auto;}
+  .report table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.74rem;
+    font-variant-numeric:tabular-nums;
+  }
+  .report th, .report td{
+    text-align:left;
+    padding:.4rem .45rem;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  .report thead th{
+    font-size:.64rem;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-muted);
+    border-bottom:1px solid var(--ink-muted);
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .report td.num, .report th.num{text-align:right;white-space:nowrap;}
+  .report tbody tr:nth-child(even){background:var(--surface-2);}
+  .report tfoot td{
+    font-weight:700;
+    border-top:2px solid var(--accent);
+    border-bottom:none;
+    padding-top:.5rem;
+  }
+  .report td.gain{color:var(--profit);font-weight:600;}
+  .report td.perte{color:var(--loss);font-weight:600;}
+  .report-note{
+    font-size:.72rem;
+    color:var(--ink-muted);
+    margin:1rem 0 0;
+    padding-top:.6rem;
+    border-top:1px dashed var(--border);
+  }
+  .report-vide{
+    font-size:.82rem;color:var(--ink-muted);
+    padding:1rem 0;text-align:center;
+  }
+
+  /* Mode impression : on ne garde que le rapport, en clair sur blanc. */
+  body.printing .topbar,
+  body.printing main,
+  body.printing .tabbar,
+  body.printing .fab,
+  body.printing #formSheet,
+  body.printing #confirmSheet,
+  body.printing #storageWarning,
+  body.printing .report-actions,
+  body.printing #reportSheet .sheet-backdrop{display:none !important;}
+  body.printing .app{max-width:none;padding-bottom:0;min-height:0;}
+  body.printing #reportSheet{position:static;inset:auto;z-index:auto;}
+  body.printing .report-panel{
+    position:static;max-width:none;max-height:none;
+    overflow:visible;border-radius:0;box-shadow:none;background:#fff;
+  }
+  body.printing .report{padding:0;font-size:10.5pt;color:#000;}
+
+  @media print{
+    @page{size:A4 portrait;margin:14mm 13mm;}
+    /* Palette claire forcée : sinon un téléphone en thème sombre imprime noir. */
+    :root, :root[data-theme="dark"], :root[data-theme="light"]{
+      --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F4F1EA;
+      --ink:#1A1A1A; --ink-muted:#5A5A5A; --border:#C9C2B4;
+      --accent:#A9722F; --accent-strong:#8C5B22;
+      --profit:#256B3C; --loss:#A33528;
+      --shadow:none;
+    }
+    html, body{background:#fff !important;}
+    .report h2{break-after:avoid;}
+    .report table{break-inside:auto;}
+    .report tr{break-inside:avoid;}
+    .report thead{display:table-header-group;}
+    .report tfoot{display:table-footer-group;}
+    .report-kpis{break-inside:avoid;}
+  }
+
   @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
 </style>
 
@@ -560,6 +737,19 @@
         </div>
         <div id="categoryBars" class="cat-bars"></div>
         <p id="categoryEmpty" class="empty-hint" hidden>Ajoute des ventes pour voir la répartition par catégorie.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Rapport mensuel</h2>
+          <span class="hint">pour tes déclaratifs</span>
+        </div>
+        <p class="backup-note">Choisis une période, vérifie l'aperçu, puis enregistre-le en PDF.</p>
+        <div class="report-controls">
+          <select id="reportPeriod" aria-label="Période du rapport"></select>
+          <button type="button" class="btn-line" id="reportBtn">Aperçu du rapport</button>
+        </div>
+        <p class="backup-status" id="reportStatus" hidden></p>
       </div>
 
       <div class="card">
@@ -699,6 +889,17 @@
         <button type="button" class="btn-cancel" data-confirm-cancel>Annuler</button>
         <button type="button" class="btn-confirm" id="confirmOk">Supprimer</button>
       </div>
+    </div>
+  </div>
+
+  <div id="reportSheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-report-close></div>
+    <div class="report-panel">
+      <div class="report-actions">
+        <button type="button" class="btn-line" data-report-close>Fermer</button>
+        <button type="button" class="btn-primary" id="printBtn">Enregistrer en PDF</button>
+      </div>
+      <article id="reportContent" class="report"></article>
     </div>
   </div>
 </div>
@@ -1531,10 +1732,218 @@
     reader.readAsText(file);
   });
 
+  // ---------- Rapport mensuel (PDF via l'impression) ----------
+  var reportSheet = document.getElementById("reportSheet");
+  var reportPeriod = document.getElementById("reportPeriod");
+
+  function moisLong(key){
+    var p = key.split("-");
+    var d = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, 1);
+    return new Intl.DateTimeFormat("fr-FR", {month:"long", year:"numeric"}).format(d);
+  }
+
+  function periodesDisponibles(items){
+    var mois = {}, annees = {};
+    items.forEach(function(it){
+      if(!isSold(it)) return;
+      mois[monthKey(it.dateRevente)] = true;
+      annees[it.dateRevente.slice(0,4)] = true;
+    });
+    var listeMois = Object.keys(mois).sort().reverse();
+    var listeAnnees = Object.keys(annees).sort().reverse();
+    var out = listeMois.map(function(k){ return {value:"m:"+k, label: moisLong(k)}; });
+    listeAnnees.forEach(function(a){ out.push({value:"y:"+a, label:"Année " + a}); });
+    return out;
+  }
+
+  function remplirPeriodes(){
+    var items = loadItems();
+    var periodes = periodesDisponibles(items);
+    var choixActuel = reportPeriod.value;
+    reportPeriod.innerHTML = "";
+    if(periodes.length === 0){
+      var o = document.createElement("option");
+      o.textContent = "Aucune vente enregistrée";
+      o.value = "";
+      reportPeriod.appendChild(o);
+      reportPeriod.disabled = true;
+      return;
+    }
+    reportPeriod.disabled = false;
+    periodes.forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p.value;
+      o.textContent = p.label;
+      reportPeriod.appendChild(o);
+    });
+    // On ne conserve la période que si elle a été choisie explicitement ;
+    // sinon on présente toujours la plus récente.
+    if(periodeChoisie && choixActuel && periodes.some(function(p){ return p.value === choixActuel; })){
+      reportPeriod.value = choixActuel;
+    }
+  }
+
+  var periodeChoisie = false;
+  reportPeriod.addEventListener("change", function(){ periodeChoisie = true; });
+
+  function filtreParPeriode(items, periode){
+    if(!periode) return [];
+    var type = periode.slice(0,1), cle = periode.slice(2);
+    return items.filter(function(it){
+      if(!isSold(it)) return false;
+      return type === "m" ? monthKey(it.dateRevente) === cle
+                          : it.dateRevente.slice(0,4) === cle;
+    });
+  }
+
+  function libellePeriode(periode){
+    if(!periode) return "";
+    return periode.slice(0,1) === "m" ? moisLong(periode.slice(2)) : "Année " + periode.slice(2);
+  }
+
+  function construireRapport(periode){
+    var tous = loadItems();
+    var ventes = filtreParPeriode(tous, periode).sort(function(a,b){
+      return a.dateRevente.localeCompare(b.dateRevente);
+    });
+
+    var ca = 0, cout = 0;
+    ventes.forEach(function(it){ ca += it.prixRevente; cout += it.prixAchat; });
+    var benefice = ca - cout;
+    var marge = ca > 0 ? (benefice / ca * 100) : 0;
+
+    var stockNb = 0, stockCapital = 0;
+    tous.forEach(function(it){ if(!isSold(it)){ stockNb++; stockCapital += it.prixAchat; } });
+
+    var h = [];
+    h.push('<div class="report-head">'+
+             '<div><h1>Rapport de reventes</h1>'+
+             '<div class="report-periode">'+escapeHtml(libellePeriode(periode))+'</div></div>'+
+             '<div class="report-meta">Édité le '+escapeHtml(new Intl.DateTimeFormat("fr-FR").format(new Date()))+'</div>'+
+           '</div>');
+
+    if(ventes.length === 0){
+      h.push('<p class="report-vide">Aucune vente sur cette période.</p>');
+      document.getElementById("reportContent").innerHTML = h.join("");
+      return;
+    }
+
+    h.push('<div class="report-kpis">'+
+      kpi("Bénéfice", fmtMoney(benefice), benefice >= 0 ? "profit" : "loss")+
+      kpi("Total des ventes", fmtMoney(ca))+
+      kpi("Coût d'achat", fmtMoney(cout))+
+      kpi("Marge", (Math.round(marge*10)/10).toString().replace(".", ",")+" %")+
+    '</div>');
+
+    h.push('<h2>Détail des ventes ('+ventes.length+')</h2>');
+    h.push('<div class="report-table-wrap"><table><thead><tr>'+
+             '<th>Article</th><th>Catégorie</th><th>Vendu le</th>'+
+             '<th class="num">Achat</th><th class="num">Revente</th><th class="num">Bénéfice</th>'+
+           '</tr></thead><tbody>');
+    ventes.forEach(function(it){
+      var p = profitOf(it);
+      h.push('<tr>'+
+        '<td>'+escapeHtml(it.nom)+'</td>'+
+        '<td>'+escapeHtml(it.categorie)+'</td>'+
+        '<td>'+escapeHtml(dateCourte(it.dateRevente))+'</td>'+
+        '<td class="num">'+fmtMoney(it.prixAchat)+'</td>'+
+        '<td class="num">'+fmtMoney(it.prixRevente)+'</td>'+
+        '<td class="num '+(p>=0?"gain":"perte")+'">'+fmtMoney(p)+'</td>'+
+      '</tr>');
+    });
+    h.push('</tbody><tfoot><tr>'+
+             '<td colspan="3">Total</td>'+
+             '<td class="num">'+fmtMoney(cout)+'</td>'+
+             '<td class="num">'+fmtMoney(ca)+'</td>'+
+             '<td class="num">'+fmtMoney(benefice)+'</td>'+
+           '</tr></tfoot></table></div>');
+
+    // Répartition par catégorie sur la période
+    var parCat = {};
+    ventes.forEach(function(it){
+      if(!parCat[it.categorie]) parCat[it.categorie] = {nb:0, benefice:0, ca:0};
+      parCat[it.categorie].nb++;
+      parCat[it.categorie].benefice += profitOf(it);
+      parCat[it.categorie].ca += it.prixRevente;
+    });
+    var cats = Object.keys(parCat).sort(function(a,b){ return parCat[b].benefice - parCat[a].benefice; });
+    h.push('<h2>Par catégorie</h2>');
+    h.push('<div class="report-table-wrap"><table><thead><tr>'+
+             '<th>Catégorie</th><th class="num">Ventes</th>'+
+             '<th class="num">Total des ventes</th><th class="num">Bénéfice</th>'+
+           '</tr></thead><tbody>');
+    cats.forEach(function(c){
+      var d = parCat[c];
+      h.push('<tr><td>'+escapeHtml(c)+'</td>'+
+             '<td class="num">'+d.nb+'</td>'+
+             '<td class="num">'+fmtMoney(d.ca)+'</td>'+
+             '<td class="num '+(d.benefice>=0?"gain":"perte")+'">'+fmtMoney(d.benefice)+'</td></tr>');
+    });
+    h.push('</tbody></table></div>');
+
+    h.push('<p class="report-note">Articles encore en stock, toutes périodes confondues : '+
+           stockNb+(stockNb>1?" articles":" article")+' pour '+fmtMoney(stockCapital)+
+           ' de capital immobilisé (non compté dans le bénéfice ci-dessus).</p>');
+
+    document.getElementById("reportContent").innerHTML = h.join("");
+  }
+
+  function kpi(label, valeur, classe){
+    return '<div class="report-kpi"><span class="k-label">'+escapeHtml(label)+'</span>'+
+           '<span class="k-value'+(classe?" "+classe:"")+'">'+escapeHtml(valeur)+'</span></div>';
+  }
+
+  function dateCourte(iso){
+    var p = iso.split("-");
+    return p[2]+"/"+p[1]+"/"+p[0];
+  }
+
+  document.getElementById("reportBtn").addEventListener("click", function(){
+    var periode = reportPeriod.value;
+    if(!periode){
+      showReportStatus("Enregistre d'abord une vente : le rapport se base sur les articles vendus.", "err");
+      return;
+    }
+    document.getElementById("reportStatus").hidden = true;
+    construireRapport(periode);
+    reportSheet.hidden = false;
+    reportSheet.scrollTop = 0;
+  });
+
+  function showReportStatus(msg, kind){
+    var el = document.getElementById("reportStatus");
+    el.textContent = msg;
+    el.className = "backup-status " + (kind || "");
+    el.hidden = false;
+  }
+
+  reportSheet.querySelectorAll("[data-report-close]").forEach(function(el){
+    el.addEventListener("click", function(){ reportSheet.hidden = true; });
+  });
+
+  document.getElementById("printBtn").addEventListener("click", function(){
+    if(typeof window.print !== "function"){
+      showReportStatus("Ce navigateur ne propose pas l'impression. Fais une capture d'écran du rapport.", "err");
+      return;
+    }
+    document.body.classList.add("printing");
+    window.print();
+    // Filets de sécurité : si "afterprint" ne se déclenche pas (cas connu sur
+    // certains mobiles), l'app resterait figée en mise en page d'impression.
+    setTimeout(sortirModeImpression, 1000);
+  });
+
+  function sortirModeImpression(){
+    document.body.classList.remove("printing");
+  }
+  window.addEventListener("afterprint", sortirModeImpression);
+  window.addEventListener("focus", sortirModeImpression);
+
   function renderAll(){
     renderDashboard();
     renderList();
     renderBackupCount();
+    remplirPeriodes();
   }
 
   var resizeTimer = null;
