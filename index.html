@@ -507,6 +507,72 @@
   }
   input[type="file"]{display:none;}
 
+  .checkbox-row small{font-size:.72rem;color:var(--ink-muted);display:block;}
+
+  /* ---------- Provision fiscale ---------- */
+  .fiscal-controls{display:flex;gap:.6rem;margin-bottom:.2rem;}
+  .fiscal-controls label{flex:1;}
+  .input-suffix{display:flex;align-items:center;gap:.35rem;}
+  .input-suffix input{width:100%;}
+  .input-suffix span{font-size:.9rem;color:var(--ink-muted);}
+  .fiscal-resultats{
+    display:flex;flex-direction:column;gap:.3rem;
+    margin-top:.8rem;padding-top:.7rem;
+    border-top:1px solid var(--border);
+  }
+  .fiscal-resultats[hidden]{display:none;}
+  .fiscal-ligne{
+    display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+    font-size:.84rem;color:var(--ink-muted);
+  }
+  .fiscal-ligne strong{
+    font-variant-numeric:tabular-nums;font-weight:600;color:var(--loss);
+    font-family:var(--font-display);font-size:1.02rem;
+  }
+  .fiscal-ligne.net{
+    margin-top:.25rem;padding-top:.45rem;border-top:1px dashed var(--border);
+  }
+  .fiscal-ligne.net strong{color:var(--profit);font-size:1.12rem;}
+  .fiscal-ligne.net strong.loss{color:var(--loss);}
+  .fiscal-avertissement{
+    font-size:.72rem;color:var(--ink-muted);
+    margin:.8rem 0 0;line-height:1.5;
+  }
+
+  .btn-retour{width:100%;padding:.55rem .6rem;border-color:var(--loss);color:var(--loss);}
+  .btn-retour[hidden]{display:none;}
+
+  .retours-info{
+    font-size:.76rem;
+    color:var(--ink-muted);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-left:3px solid var(--loss);
+    border-radius:8px;
+    padding:.55rem .65rem;
+    line-height:1.5;
+  }
+  .retours-info[hidden]{display:none;}
+  .retours-info strong{color:var(--ink);font-weight:600;display:block;margin-bottom:.2rem;}
+  .retours-info ul{margin:.1rem 0 0;padding-left:1.1rem;}
+
+  .tag.tag-retour{
+    background:transparent;
+    border:1px dashed var(--loss);
+    color:var(--loss);
+  }
+
+  /* Article annulé : présent pour la trace, mais visuellement mis de côté. */
+  .item-row.annule{opacity:.72;}
+  .item-row.annule .item-name{text-decoration:line-through;}
+  .item-row.annule .amt{text-decoration:line-through;color:var(--ink-muted);}
+  .item-row.annule .item-thumb{filter:grayscale(1);}
+  .tag.tag-annule{
+    background:transparent;
+    border:1px solid var(--loss);
+    color:var(--loss);
+  }
+
   /* ---------- Rapport mensuel ---------- */
   .report-controls{display:flex;gap:.5rem;flex-wrap:wrap;}
   .report-controls select{flex:1;min-width:150px;}
@@ -741,6 +807,47 @@
 
       <div class="card">
         <div class="card-head">
+          <h2>Impôts à provisionner</h2>
+          <span class="hint">calcul indicatif</span>
+        </div>
+        <div class="fiscal-controls">
+          <label>
+            <span class="lbl">Taux</span>
+            <div class="input-suffix">
+              <input type="number" id="fiscalTaux" min="0" max="100" step="0.1" inputmode="decimal" placeholder="0">
+              <span>%</span>
+            </div>
+          </label>
+          <label>
+            <span class="lbl">À appliquer sur</span>
+            <select id="fiscalBase">
+              <option value="benefice">Le bénéfice</option>
+              <option value="ventes">Le total des ventes</option>
+            </select>
+          </label>
+        </div>
+        <div class="fiscal-resultats" id="fiscalResultats" hidden>
+          <div class="fiscal-ligne">
+            <span>À provisionner sur le total</span>
+            <strong id="fiscalTotal">0,00 €</strong>
+          </div>
+          <div class="fiscal-ligne">
+            <span>Dont sur le mois en cours</span>
+            <strong id="fiscalMois">0,00 €</strong>
+          </div>
+          <div class="fiscal-ligne net">
+            <span>Bénéfice net estimé</span>
+            <strong id="fiscalNet">0,00 €</strong>
+          </div>
+        </div>
+        <p class="fiscal-avertissement">
+          C'est une simple multiplication, pas un conseil fiscal : le taux et sa base
+          dépendent de ta situation. À confirmer auprès d'un comptable ou sur impots.gouv.fr.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <h2>Rapport mensuel</h2>
           <span class="hint">pour tes déclaratifs</span>
         </div>
@@ -779,6 +886,7 @@
         <button class="chip active" data-filter="all" type="button">Tous</button>
         <button class="chip" data-filter="stock" type="button">En stock</button>
         <button class="chip" data-filter="sold" type="button">Vendus</button>
+        <button class="chip" data-filter="cancelled" type="button">Annulés</button>
       </div>
       <ul id="itemList" class="item-list"></ul>
       <p id="listEmpty" class="empty-hint" hidden>Aucun article pour l'instant. Touche le bouton + pour ajouter ton premier achat.</p>
@@ -821,6 +929,17 @@
         <datalist id="categoryOptions"></datalist>
       </label>
 
+      <label>
+        <span class="lbl">Acheté via</span>
+        <input type="text" id="fCanal" list="canalOptions" maxlength="60" placeholder="Ex. Vinted, vide grenier Lyon">
+        <datalist id="canalOptions"></datalist>
+      </label>
+
+      <label>
+        <span class="lbl">Vendeur <small>(nom et prénom)</small></span>
+        <input type="text" id="fVendeur" maxlength="80" placeholder="Ex. Marie Dupont" autocomplete="off">
+      </label>
+
       <div class="photo-field">
         <img id="photoPreview" class="photo-preview" hidden alt="Photo de l'article">
         <div class="photo-preview" id="photoPlaceholder">
@@ -854,6 +973,11 @@
         <span>Déjà revendu</span>
       </label>
 
+      <label class="checkbox-row">
+        <input type="checkbox" id="fCancelled">
+        <span>Achat annulé <small>(je n'ai finalement pas acheté)</small></span>
+      </label>
+
       <div class="sold-fields" id="soldFields" hidden>
         <div class="field-row">
           <label>
@@ -865,7 +989,12 @@
             <input type="date" id="fSellDate">
           </label>
         </div>
+        <button type="button" class="btn-line btn-retour" id="returnBtn" hidden>
+          L'acheteur a annulé — remettre en stock
+        </button>
       </div>
+
+      <div class="retours-info" id="retoursInfo" hidden></div>
 
       <div class="estimate" id="estimateRow" hidden>
         <span>Bénéfice estimé</span>
@@ -909,6 +1038,9 @@
   "use strict";
   var STORAGE_KEY = "revente_items_v1";
   var CATEGORY_KEY = "revente_categories_v1";
+  var CANAL_KEY = "revente_canaux_v1";
+  var FISCAL_KEY = "revente_fiscal_v1";
+  var DEFAULT_CANAUX = ["Vinted","eBay","Le Bon Coin","Vide grenier","Vide maison","Brocante","Emmaüs","Particulier"];
   var MARGE_CIBLE = 0.40; // prix conseillé = prix d'achat + 40 %
   var DEFAULT_CATEGORIES = ["Vêtements","Chaussures","Mobilier","Électronique","Jouets","Livres","Décoration","Autre"];
 
@@ -941,26 +1073,42 @@
     }
   }
 
+  // Deux onglets ouverts en même temps : sans cela, le second travaille sur une
+  // copie périmée et écraserait les articles ajoutés dans le premier.
+  window.addEventListener("storage", function(e){
+    if(e.key !== STORAGE_KEY && e.key !== null) return;
+    itemsCache = null;
+    renderAll();
+  });
+
   function warnStorage(msg){
     var banner = document.getElementById("storageWarning");
     banner.textContent = msg;
     banner.hidden = false;
   }
-  function loadCategories(){
+  // Listes de suggestions (catégories, canaux d'achat) : valeurs par défaut plus
+  // celles qu'Amandine a saisies elle-même.
+  function loadListe(cle, defauts){
     var extra = [];
-    try{ extra = JSON.parse(localStorage.getItem(CATEGORY_KEY) || "[]"); }catch(e){}
-    var set = DEFAULT_CATEGORIES.concat(extra.filter(function(c){ return DEFAULT_CATEGORIES.indexOf(c) === -1; }));
-    return set;
+    try{ extra = JSON.parse(localStorage.getItem(cle) || "[]"); }catch(e){}
+    if(!Array.isArray(extra)) extra = [];
+    return defauts.concat(extra.filter(function(v){ return defauts.indexOf(v) === -1; }));
   }
-  function rememberCategory(cat){
-    if(!cat || DEFAULT_CATEGORIES.indexOf(cat) !== -1) return;
+  function memoriserDansListe(cle, defauts, valeur){
+    if(!valeur || defauts.indexOf(valeur) !== -1) return;
     var extra = [];
-    try{ extra = JSON.parse(localStorage.getItem(CATEGORY_KEY) || "[]"); }catch(e){}
-    if(extra.indexOf(cat) === -1){
-      extra.push(cat);
-      localStorage.setItem(CATEGORY_KEY, JSON.stringify(extra));
+    try{ extra = JSON.parse(localStorage.getItem(cle) || "[]"); }catch(e){}
+    if(!Array.isArray(extra)) extra = [];
+    if(extra.indexOf(valeur) === -1){
+      extra.push(valeur);
+      try{ localStorage.setItem(cle, JSON.stringify(extra)); }catch(e){}
     }
   }
+
+  function loadCategories(){ return loadListe(CATEGORY_KEY, DEFAULT_CATEGORIES); }
+  function rememberCategory(cat){ memoriserDansListe(CATEGORY_KEY, DEFAULT_CATEGORIES, cat); }
+  function loadCanaux(){ return loadListe(CANAL_KEY, DEFAULT_CANAUX); }
+  function rememberCanal(canal){ memoriserDansListe(CANAL_KEY, DEFAULT_CANAUX, canal); }
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 
@@ -987,9 +1135,10 @@
   var confirmSheet = document.getElementById("confirmSheet");
   var confirmCallback = null;
 
-  function askConfirm(titre, texte, onYes){
+  function askConfirm(titre, texte, onYes, libelleOk){
     document.getElementById("confirmTitle").textContent = titre;
     document.getElementById("confirmText").textContent = texte;
+    document.getElementById("confirmOk").textContent = libelleOk || "Supprimer";
     confirmCallback = onYes;
     confirmSheet.hidden = false;
   }
@@ -1010,23 +1159,77 @@
     if(item.prixRevente === null || item.prixRevente === undefined) return null;
     return item.prixRevente - item.prixAchat;
   }
-  function isSold(item){ return item.prixRevente !== null && item.prixRevente !== undefined; }
+  // Achat annulé : l'argent n'est jamais sorti. On garde la trace, mais
+  // l'article ne pèse ni sur le bénéfice ni sur le capital immobilisé.
+  function estAnnule(item){ return item.annule === true; }
+  function isSold(item){
+    if(estAnnule(item)) return false;
+    return item.prixRevente !== null && item.prixRevente !== undefined;
+  }
+  function enStock(item){ return !estAnnule(item) && !isSold(item); }
+
+  // Vente annulée par l'acheteur : l'article revient en stock et redevient
+  // vendable. On garde l'historique des ventes annulées pour mémoire.
+  function retoursDe(item){ return Array.isArray(item.retours) ? item.retours : []; }
+  function aRetours(item){ return retoursDe(item).length > 0; }
+
+  // Journal des mouvements : la source de vérité pour tout ce qui est daté.
+  //
+  // Une vente annulée n'est PAS effacée du passé : elle reste dans le mois où
+  // elle a eu lieu, et le retour apparaît comme une ligne négative dans le mois
+  // où il a eu lieu. Les rapports déjà édités restent donc valables.
+  function mouvements(items){
+    var out = [];
+    items.forEach(function(it){
+      if(estAnnule(it)) return;
+
+      if(isSold(it)){
+        out.push({item:it, type:"vente", date:it.dateRevente,
+                  prixRevente:it.prixRevente, prixAchat:it.prixAchat,
+                  montant:it.prixRevente - it.prixAchat});
+      }
+
+      retoursDe(it).forEach(function(r){
+        // Le prix d'achat est figé au moment du retour ; à défaut (anciens
+        // enregistrements) on retombe sur le prix d'achat actuel de l'article.
+        var achat = (typeof r.prixAchat === "number") ? r.prixAchat : it.prixAchat;
+        var benefice = r.prixRevente - achat;
+        out.push({item:it, type:"vente", date:r.dateRevente,
+                  prixRevente:r.prixRevente, prixAchat:achat, montant:benefice});
+        out.push({item:it, type:"retour", date:r.dateRetour,
+                  prixRevente:r.prixRevente, prixAchat:achat, montant:-benefice,
+                  venteDu:r.dateRevente});
+      });
+    });
+    return out;
+  }
+
+  function mouvementsDeLaPeriode(mvts, type, cle){
+    return mvts.filter(function(m){
+      return type === "m" ? monthKey(m.date) === cle : m.date.slice(0,4) === cle;
+    });
+  }
 
   // ---------- Dashboard ----------
   function computeStats(items){
-    var totalProfit = 0, monthProfit = 0, soldCount = 0, stockCapital = 0;
-    var curMonth = monthKey(todayISO());
+    var soldCount = 0, stockCapital = 0, cancelledCount = 0;
     items.forEach(function(it){
-      if(isSold(it)){
-        var p = profitOf(it);
-        totalProfit += p;
-        soldCount++;
-        if(monthKey(it.dateRevente) === curMonth) monthProfit += p;
-      } else {
-        stockCapital += it.prixAchat;
-      }
+      if(estAnnule(it)) cancelledCount++;
+      else if(isSold(it)) soldCount++;
+      else stockCapital += it.prixAchat;
     });
-    return {totalProfit: totalProfit, monthProfit: monthProfit, soldCount: soldCount, stockCapital: stockCapital};
+
+    // Bénéfices calculés sur le journal : un retour vient en négatif dans son
+    // propre mois, sans retoucher le mois de la vente.
+    var curMonth = monthKey(todayISO());
+    var totalProfit = 0, monthProfit = 0;
+    mouvements(items).forEach(function(m){
+      totalProfit += m.montant;
+      if(monthKey(m.date) === curMonth) monthProfit += m.montant;
+    });
+
+    return {totalProfit: totalProfit, monthProfit: monthProfit, soldCount: soldCount,
+            stockCapital: stockCapital, cancelledCount: cancelledCount};
   }
 
   function last6Months(){
@@ -1044,23 +1247,21 @@
     var keys = last6Months();
     var map = {};
     keys.forEach(function(k){ map[k] = 0; });
-    items.forEach(function(it){
-      if(isSold(it)){
-        var k = monthKey(it.dateRevente);
-        if(map.hasOwnProperty(k)) map[k] += profitOf(it);
-      }
+    mouvements(items).forEach(function(m){
+      var k = monthKey(m.date);
+      if(map.hasOwnProperty(k)) map[k] += m.montant;
     });
     return keys.map(function(k){ return {key:k, label: monthLabel(k), value: map[k]}; });
   }
 
   function categoryAggregate(items){
     var map = {};
-    items.forEach(function(it){
-      if(isSold(it)){
-        map[it.categorie] = (map[it.categorie] || 0) + profitOf(it);
-      }
+    mouvements(items).forEach(function(m){
+      map[m.item.categorie] = (map[m.item.categorie] || 0) + m.montant;
     });
+    // Une vente annulée se neutralise : on n'affiche pas les catégories à zéro.
     return Object.keys(map).map(function(k){ return {cat:k, value: map[k]}; })
+      .filter(function(d){ return Math.abs(d.value) > 0.005; })
       .sort(function(a,b){ return Math.abs(b.value) - Math.abs(a.value); });
   }
 
@@ -1201,8 +1402,9 @@
       var db = b.dateRevente || b.dateAchat;
       return db.localeCompare(da);
     });
-    if(currentFilter === "stock") items = items.filter(function(it){ return !isSold(it); });
+    if(currentFilter === "stock") items = items.filter(enStock);
     if(currentFilter === "sold") items = items.filter(isSold);
+    if(currentFilter === "cancelled") items = items.filter(estAnnule);
 
     var list = document.getElementById("itemList");
     var empty = document.getElementById("listEmpty");
@@ -1217,7 +1419,8 @@
       var li = document.createElement("li");
       var btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "item-row";
+      var annule = estAnnule(it);
+      btn.className = "item-row" + (annule ? " annule" : "");
       btn.setAttribute("data-id", it.id);
 
       var thumbHtml = it.photo
@@ -1226,7 +1429,9 @@
 
       var sold = isSold(it);
       var amountHtml;
-      if(sold){
+      if(annule){
+        amountHtml = '<div class="item-amount"><span class="amt">'+fmtMoney(it.prixAchat)+'</span><span class="status">non dépensé</span></div>';
+      } else if(sold){
         var p = profitOf(it);
         amountHtml = '<div class="item-amount"><span class="amt '+(p>=0?"profit":"loss")+'">'+fmtMoney(p)+'</span><span class="status">vendu</span></div>';
       } else {
@@ -1237,7 +1442,10 @@
         thumbHtml +
         '<div class="item-main">'+
           '<span class="item-name">'+escapeHtml(it.nom)+'</span>'+
-          '<div class="item-meta"><span class="tag">'+escapeHtml(it.categorie)+'</span><span>'+(sold ? it.dateRevente : it.dateAchat)+'</span></div>'+
+          '<div class="item-meta"><span class="tag">'+escapeHtml(it.categorie)+'</span>'+
+            (annule ? '<span class="tag tag-annule">annulé</span>' : '')+
+            (aRetours(it) ? '<span class="tag tag-retour">retour</span>' : '')+
+            '<span>'+(sold ? it.dateRevente : it.dateAchat)+'</span></div>'+
         '</div>'+
         amountHtml;
 
@@ -1270,6 +1478,7 @@
   var sheet = document.getElementById("formSheet");
   var form = document.getElementById("itemForm");
   var soldCheckbox = document.getElementById("fSold");
+  var cancelledCheckbox = document.getElementById("fCancelled");
   var soldFields = document.getElementById("soldFields");
   var photoInput = document.getElementById("fPhoto");
   var photoPreview = document.getElementById("photoPreview");
@@ -1277,14 +1486,18 @@
   var photoRemoveBtn = document.getElementById("photoRemoveBtn");
   var currentPhoto = null;
 
-  function refreshCategoryOptions(){
-    var dl = document.getElementById("categoryOptions");
+  function remplirDatalist(idDatalist, valeurs){
+    var dl = document.getElementById(idDatalist);
     dl.innerHTML = "";
-    loadCategories().forEach(function(c){
+    valeurs.forEach(function(v){
       var opt = document.createElement("option");
-      opt.value = c;
+      opt.value = v;
       dl.appendChild(opt);
     });
+  }
+  function refreshCategoryOptions(){
+    remplirDatalist("categoryOptions", loadCategories());
+    remplirDatalist("canalOptions", loadCanaux());
   }
 
   function openForm(id){
@@ -1296,6 +1509,9 @@
     photoRemoveBtn.hidden = true;
     soldFields.hidden = true;
     soldCheckbox.checked = false;
+    cancelledCheckbox.checked = false;
+    document.getElementById("returnBtn").hidden = true;
+    document.getElementById("retoursInfo").hidden = true;
     document.getElementById("estimateRow").hidden = true;
 
     if(id){
@@ -1305,6 +1521,8 @@
       document.getElementById("fId").value = item.id;
       document.getElementById("fName").value = item.nom;
       document.getElementById("fCategory").value = item.categorie;
+      document.getElementById("fCanal").value = item.canal || "";
+      document.getElementById("fVendeur").value = item.vendeur || "";
       document.getElementById("fBuyPrice").value = item.prixAchat;
       document.getElementById("fBuyDate").value = item.dateAchat;
       document.getElementById("deleteBtn").hidden = false;
@@ -1315,12 +1533,17 @@
         photoPlaceholder.hidden = true;
         photoRemoveBtn.hidden = false;
       }
-      if(isSold(item)){
+      if(estAnnule(item)){
+        cancelledCheckbox.checked = true;
+      } else if(isSold(item)){
         soldCheckbox.checked = true;
         soldFields.hidden = false;
         document.getElementById("fSellPrice").value = item.prixRevente;
         document.getElementById("fSellDate").value = item.dateRevente;
+        // Le retour ne se propose que sur une vente déjà enregistrée.
+        document.getElementById("returnBtn").hidden = false;
       }
+      afficherRetours(item);
     } else {
       document.getElementById("formTitle").textContent = "Ajouter un article";
       document.getElementById("fId").value = "";
@@ -1331,6 +1554,57 @@
     sheet.hidden = false;
   }
 
+  function afficherRetours(item){
+    var bloc = document.getElementById("retoursInfo");
+    var liste = retoursDe(item);
+    if(liste.length === 0){ bloc.hidden = true; return; }
+    var h = ['<strong>'+(liste.length > 1 ? liste.length+' ventes annulées' : 'Vente annulée')+
+             ' par l\'acheteur</strong><ul>'];
+    liste.slice().reverse().forEach(function(r){
+      h.push('<li>Vendu '+fmtMoney(r.prixRevente)+' le '+escapeHtml(dateCourte(r.dateRevente))+
+             ', retourné le '+escapeHtml(dateCourte(r.dateRetour))+'</li>');
+    });
+    h.push('</ul>');
+    bloc.innerHTML = h.join("");
+    bloc.hidden = false;
+  }
+
+  // Retour acheteur : la vente est effacée (donc son bénéfice aussi), l'article
+  // repart en stock, et la vente annulée est archivée sur l'article.
+  document.getElementById("returnBtn").addEventListener("click", function(){
+    var id = document.getElementById("fId").value;
+    if(!id) return;
+    var item = loadItems().find(function(it){ return it.id === id; });
+    if(!item || !isSold(item)) return;
+
+    askConfirm(
+      "L'acheteur a annulé ?",
+      "« " + item.nom + " » repart dans ton stock. Le bénéfice de cette vente (" +
+        fmtMoney(profitOf(item)) + ") est déduit du mois en cours ; le rapport du mois de la vente reste inchangé.",
+      function(){
+        var items = loadItems();
+        var idx = items.findIndex(function(it){ return it.id === id; });
+        if(idx < 0) return;
+        var cible = items[idx];
+        var histo = retoursDe(cible).slice();
+        histo.push({
+          prixRevente: cible.prixRevente,
+          prixAchat: cible.prixAchat,
+          dateRevente: cible.dateRevente,
+          dateRetour: todayISO()
+        });
+        cible.retours = histo;
+        cible.prixRevente = null;
+        cible.dateRevente = null;
+        items[idx] = cible;
+        saveItems(items);
+        closeForm();
+        renderAll();
+      },
+      "Remettre en stock"
+    );
+  });
+
   function closeForm(){ sheet.hidden = true; }
 
   document.getElementById("fab").addEventListener("click", function(){ openForm(null); });
@@ -1339,17 +1613,34 @@
   });
 
   soldCheckbox.addEventListener("change", function(){
+    // Vendu et annulé s'excluent : un achat annulé n'a jamais été revendu.
+    if(soldCheckbox.checked) cancelledCheckbox.checked = false;
     soldFields.hidden = !soldCheckbox.checked;
     if(soldCheckbox.checked && !document.getElementById("fSellDate").value){
       document.getElementById("fSellDate").value = todayISO();
     }
+    majEtatAnnule();
     updateEstimate();
   });
+
+  cancelledCheckbox.addEventListener("change", function(){
+    if(cancelledCheckbox.checked){
+      soldCheckbox.checked = false;
+      soldFields.hidden = true;
+    }
+    majEtatAnnule();
+    updateEstimate();
+  });
+
+  // Un achat annulé n'a pas de prix à viser : on masque le conseil.
+  function majEtatAnnule(){
+    soldCheckbox.disabled = cancelledCheckbox.checked;
+  }
 
   function updatePriceHint(){
     var hint = document.getElementById("priceHint");
     var buy = parseFloat(document.getElementById("fBuyPrice").value);
-    if(!buy || buy <= 0){ hint.hidden = true; return; }
+    if(!buy || buy <= 0 || cancelledCheckbox.checked){ hint.hidden = true; return; }
     document.getElementById("priceTarget").textContent = fmtMoney(prixCible(buy));
     hint.hidden = false;
   }
@@ -1418,16 +1709,26 @@
     e.preventDefault();
     var id = document.getElementById("fId").value || uid();
     var categorie = document.getElementById("fCategory").value.trim();
-    var sold = soldCheckbox.checked;
+    var canal = document.getElementById("fCanal").value.trim();
+    var annule = cancelledCheckbox.checked;
+    var sold = soldCheckbox.checked && !annule;
+
+    // L'historique des ventes annulées ne doit pas être perdu à la modification.
+    var existant = loadItems().find(function(it){ return it.id === id; });
+    var histo = existant ? retoursDe(existant) : [];
 
     var item = {
       id: id,
       nom: document.getElementById("fName").value.trim(),
       categorie: categorie,
+      canal: canal,
+      vendeur: document.getElementById("fVendeur").value.trim(),
       prixAchat: parseFloat(document.getElementById("fBuyPrice").value) || 0,
       dateAchat: document.getElementById("fBuyDate").value,
       prixRevente: sold ? (parseFloat(document.getElementById("fSellPrice").value) || 0) : null,
       dateRevente: sold ? document.getElementById("fSellDate").value : null,
+      annule: annule,
+      retours: histo,
       photo: currentPhoto
     };
 
@@ -1436,6 +1737,7 @@
     if(idx >= 0) items[idx] = item; else items.push(item);
     saveItems(items);
     rememberCategory(categorie);
+    rememberCanal(canal);
 
     closeForm();
     renderAll();
@@ -1615,7 +1917,7 @@
 
   function buildCsv(items){
     var lignes = [];
-    lignes.push(["Nom","Catégorie","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut"].map(csvCell).join(";"));
+    lignes.push(["Nom","Catégorie","Acheté via","Vendeur","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut","Ventes annulées"].map(csvCell).join(";"));
 
     var tries = items.slice().sort(function(a,b){
       var da = a.dateRevente || a.dateAchat;
@@ -1625,43 +1927,65 @@
 
     tries.forEach(function(it){
       var vendu = isSold(it);
+      var annule = estAnnule(it);
       lignes.push([
         csvCell(it.nom),
         csvCell(it.categorie),
+        csvCell(it.canal || ""),
+        csvCell(it.vendeur || ""),
         csvNum(it.prixAchat),
         csvCell(it.dateAchat),
-        csvNum(prixCible(it.prixAchat)),
+        annule ? "" : csvNum(prixCible(it.prixAchat)),
         vendu ? csvNum(it.prixRevente) : "",
         vendu ? csvCell(it.dateRevente) : "",
         vendu ? csvNum(profitOf(it)) : "",
         vendu ? csvCell(monthKey(it.dateRevente)) : "",
-        vendu ? "Vendu" : "En stock"
+        annule ? "Annulé" : (vendu ? "Vendu" : "En stock"),
+        retoursDe(it).length || ""
       ].join(";"));
     });
 
-    // Récapitulatif mensuel, pour le déclaratif
+    // Récapitulatif mensuel, pour le déclaratif. Bâti sur le journal : une
+    // vente annulée reste dans son mois, le retour vient en négatif dans le
+    // sien. Les mois déjà déclarés ne bougent donc jamais.
+    var mvts = mouvements(items);
     var parMois = {};
-    items.forEach(function(it){
-      if(!isSold(it)) return;
-      var k = monthKey(it.dateRevente);
-      if(!parMois[k]) parMois[k] = {nb:0, achats:0, reventes:0, benefice:0};
-      parMois[k].nb++;
-      parMois[k].achats += it.prixAchat;
-      parMois[k].reventes += it.prixRevente;
-      parMois[k].benefice += profitOf(it);
+    mvts.forEach(function(m){
+      var k = monthKey(m.date);
+      if(!parMois[k]) parMois[k] = {nb:0, nbRetours:0, achats:0, reventes:0, benefice:0};
+      var e = parMois[k];
+      if(m.type === "vente"){ e.nb++; e.achats += m.prixAchat; e.reventes += m.prixRevente; }
+      else { e.nbRetours++; e.achats -= m.prixAchat; e.reventes -= m.prixRevente; }
+      e.benefice += m.montant;
     });
     var mois = Object.keys(parMois).sort();
     if(mois.length){
       lignes.push("");
       lignes.push(csvCell("RÉCAPITULATIF MENSUEL"));
-      lignes.push(["Mois","Nombre de ventes","Total achats","Total reventes","Bénéfice"].map(csvCell).join(";"));
-      var tNb = 0, tA = 0, tR = 0, tB = 0;
+      lignes.push(["Mois","Nombre de ventes","Ventes annulées","Total achats","Total reventes","Bénéfice"].map(csvCell).join(";"));
+      var tNb = 0, tRet = 0, tA = 0, tR = 0, tB = 0;
       mois.forEach(function(k){
         var m = parMois[k];
-        tNb += m.nb; tA += m.achats; tR += m.reventes; tB += m.benefice;
-        lignes.push([csvCell(k), m.nb, csvNum(m.achats), csvNum(m.reventes), csvNum(m.benefice)].join(";"));
+        tNb += m.nb; tRet += m.nbRetours; tA += m.achats; tR += m.reventes; tB += m.benefice;
+        lignes.push([csvCell(k), m.nb, m.nbRetours || "", csvNum(m.achats), csvNum(m.reventes), csvNum(m.benefice)].join(";"));
       });
-      lignes.push([csvCell("TOTAL"), tNb, csvNum(tA), csvNum(tR), csvNum(tB)].join(";"));
+      lignes.push([csvCell("TOTAL"), tNb, tRet || "", csvNum(tA), csvNum(tR), csvNum(tB)].join(";"));
+    }
+
+    // Détail des ventes annulées, pour retrouver quelle vente a été reprise.
+    var retours = mvts.filter(function(m){ return m.type === "retour"; })
+                      .sort(function(a,b){ return a.date.localeCompare(b.date); });
+    if(retours.length){
+      lignes.push("");
+      lignes.push(csvCell("VENTES ANNULÉES PAR L'ACHETEUR"));
+      lignes.push(["Article","Catégorie","Vendu le","Prix de revente","Retourné le","Bénéfice annulé"].map(csvCell).join(";"));
+      retours.forEach(function(m){
+        lignes.push([
+          csvCell(m.item.nom), csvCell(m.item.categorie),
+          csvCell(m.venteDu), csvNum(m.prixRevente),
+          csvCell(m.date), csvNum(m.montant)
+        ].join(";"));
+      });
     }
 
     // Le BOM en tête est indispensable : sans lui, Excel affiche mal les accents.
@@ -1749,6 +2073,86 @@
     reader.readAsText(file);
   });
 
+  // ---------- Provision fiscale ----------
+  // Volontairement neutre : aucun taux n'est suggéré, aucune règle fiscale n'est
+  // supposée. L'app se contente d'appliquer le taux qu'Amandine renseigne.
+  var fiscalTaux = document.getElementById("fiscalTaux");
+  var fiscalBase = document.getElementById("fiscalBase");
+
+  function loadFiscal(){
+    try{
+      var f = JSON.parse(localStorage.getItem(FISCAL_KEY) || "{}");
+      return {
+        taux: typeof f.taux === "number" ? f.taux : 0,
+        base: f.base === "ventes" ? "ventes" : "benefice"
+      };
+    }catch(e){ return {taux:0, base:"benefice"}; }
+  }
+  function saveFiscal(f){
+    try{ localStorage.setItem(FISCAL_KEY, JSON.stringify(f)); }catch(e){}
+  }
+
+  // Assiette : soit le bénéfice, soit le total encaissé, retours déduits dans
+  // les deux cas puisque le journal porte déjà les lignes négatives.
+  function assiettes(items){
+    var totalBenefice = 0, moisBenefice = 0, totalVentes = 0, moisVentes = 0;
+    var curMonth = monthKey(todayISO());
+    mouvements(items).forEach(function(m){
+      var signe = m.type === "vente" ? 1 : -1;
+      totalBenefice += m.montant;
+      totalVentes += signe * m.prixRevente;
+      if(monthKey(m.date) === curMonth){
+        moisBenefice += m.montant;
+        moisVentes += signe * m.prixRevente;
+      }
+    });
+    return {totalBenefice:totalBenefice, moisBenefice:moisBenefice,
+            totalVentes:totalVentes, moisVentes:moisVentes};
+  }
+
+  function renderFiscal(){
+    var f = loadFiscal();
+    if(document.activeElement !== fiscalTaux){
+      fiscalTaux.value = f.taux ? f.taux : "";
+    }
+    fiscalBase.value = f.base;
+
+    var bloc = document.getElementById("fiscalResultats");
+    if(!f.taux || f.taux <= 0){ bloc.hidden = true; return; }
+
+    var a = assiettes(loadItems());
+    var baseTotal = f.base === "ventes" ? a.totalVentes : a.totalBenefice;
+    var baseMois  = f.base === "ventes" ? a.moisVentes  : a.moisBenefice;
+
+    // Une assiette négative ne génère pas d'impôt à provisionner.
+    var provTotal = Math.max(0, baseTotal) * f.taux / 100;
+    var provMois  = Math.max(0, baseMois)  * f.taux / 100;
+    var net = a.totalBenefice - provTotal;
+
+    document.getElementById("fiscalTotal").textContent = fmtMoney(provTotal);
+    document.getElementById("fiscalMois").textContent = fmtMoney(provMois);
+    var elNet = document.getElementById("fiscalNet");
+    elNet.textContent = fmtMoney(net);
+    elNet.className = net >= 0 ? "" : "loss";
+    bloc.hidden = false;
+  }
+
+  fiscalTaux.addEventListener("input", function(){
+    var v = parseFloat(fiscalTaux.value);
+    if(isNaN(v) || v < 0) v = 0;
+    if(v > 100) { v = 100; fiscalTaux.value = 100; }
+    var f = loadFiscal();
+    f.taux = v;
+    saveFiscal(f);
+    renderFiscal();
+  });
+  fiscalBase.addEventListener("change", function(){
+    var f = loadFiscal();
+    f.base = fiscalBase.value;
+    saveFiscal(f);
+    renderFiscal();
+  });
+
   // ---------- Rapport mensuel (PDF via l'impression) ----------
   var reportSheet = document.getElementById("reportSheet");
   var reportPeriod = document.getElementById("reportPeriod");
@@ -1761,10 +2165,10 @@
 
   function periodesDisponibles(items){
     var mois = {}, annees = {};
-    items.forEach(function(it){
-      if(!isSold(it)) return;
-      mois[monthKey(it.dateRevente)] = true;
-      annees[it.dateRevente.slice(0,4)] = true;
+    // Un mois qui ne contient qu'un retour doit rester proposable.
+    mouvements(items).forEach(function(m){
+      mois[monthKey(m.date)] = true;
+      annees[m.date.slice(0,4)] = true;
     });
     var listeMois = Object.keys(mois).sort().reverse();
     var listeAnnees = Object.keys(annees).sort().reverse();
@@ -1803,16 +2207,6 @@
   var periodeChoisie = false;
   reportPeriod.addEventListener("change", function(){ periodeChoisie = true; });
 
-  function filtreParPeriode(items, periode){
-    if(!periode) return [];
-    var type = periode.slice(0,1), cle = periode.slice(2);
-    return items.filter(function(it){
-      if(!isSold(it)) return false;
-      return type === "m" ? monthKey(it.dateRevente) === cle
-                          : it.dateRevente.slice(0,4) === cle;
-    });
-  }
-
   function libellePeriode(periode){
     if(!periode) return "";
     return periode.slice(0,1) === "m" ? moisLong(periode.slice(2)) : "Année " + periode.slice(2);
@@ -1820,17 +2214,28 @@
 
   function construireRapport(periode){
     var tous = loadItems();
-    var ventes = filtreParPeriode(tous, periode).sort(function(a,b){
-      return a.dateRevente.localeCompare(b.dateRevente);
-    });
+    var type = periode.slice(0,1), cle = periode.slice(2);
+    var mvts = mouvementsDeLaPeriode(mouvements(tous), type, cle)
+                 .sort(function(a,b){ return a.date.localeCompare(b.date); });
 
-    var ca = 0, cout = 0;
-    ventes.forEach(function(it){ ca += it.prixRevente; cout += it.prixAchat; });
-    var benefice = ca - cout;
-    var marge = ca > 0 ? (benefice / ca * 100) : 0;
+    var ventes = mvts.filter(function(m){ return m.type === "vente"; });
+    var retours = mvts.filter(function(m){ return m.type === "retour"; });
+
+    // Montants nets de la période : les retours viennent en déduction ici, et
+    // seulement ici — le mois de la vente d'origine n'est pas retouché.
+    var ca = 0, cout = 0, benefice = 0;
+    ventes.forEach(function(m){ ca += m.prixRevente; cout += m.prixAchat; benefice += m.montant; });
+    retours.forEach(function(m){ ca -= m.prixRevente; cout -= m.prixAchat; benefice += m.montant; });
+    // Un mois dominé par des annulations donne un CA négatif : la marge en
+    // pourcentage n'a alors aucun sens, on ne l'invente pas.
+    var margeTexte = ca > 0
+      ? (Math.round(benefice / ca * 1000) / 10).toString().replace(".", ",") + " %"
+      : "—";
 
     var stockNb = 0, stockCapital = 0;
-    tous.forEach(function(it){ if(!isSold(it)){ stockNb++; stockCapital += it.prixAchat; } });
+    tous.forEach(function(it){
+      if(enStock(it)){ stockNb++; stockCapital += it.prixAchat; }
+    });
 
     var h = [];
     h.push('<div class="report-head">'+
@@ -1839,8 +2244,8 @@
              '<div class="report-meta">Édité le '+escapeHtml(new Intl.DateTimeFormat("fr-FR").format(new Date()))+'</div>'+
            '</div>');
 
-    if(ventes.length === 0){
-      h.push('<p class="report-vide">Aucune vente sur cette période.</p>');
+    if(mvts.length === 0){
+      h.push('<p class="report-vide">Aucun mouvement sur cette période.</p>');
       document.getElementById("reportContent").innerHTML = h.join("");
       return;
     }
@@ -1849,39 +2254,67 @@
       kpi("Bénéfice", fmtMoney(benefice), benefice >= 0 ? "profit" : "loss")+
       kpi("Total des ventes", fmtMoney(ca))+
       kpi("Coût d'achat", fmtMoney(cout))+
-      kpi("Marge", (Math.round(marge*10)/10).toString().replace(".", ",")+" %")+
+      kpi("Marge", margeTexte)+
     '</div>');
 
-    h.push('<h2>Détail des ventes ('+ventes.length+')</h2>');
-    h.push('<div class="report-table-wrap"><table><thead><tr>'+
-             '<th>Article</th><th>Catégorie</th><th>Vendu le</th>'+
-             '<th class="num">Achat</th><th class="num">Revente</th><th class="num">Bénéfice</th>'+
-           '</tr></thead><tbody>');
-    ventes.forEach(function(it){
-      var p = profitOf(it);
-      h.push('<tr>'+
-        '<td>'+escapeHtml(it.nom)+'</td>'+
-        '<td>'+escapeHtml(it.categorie)+'</td>'+
-        '<td>'+escapeHtml(dateCourte(it.dateRevente))+'</td>'+
-        '<td class="num">'+fmtMoney(it.prixAchat)+'</td>'+
-        '<td class="num">'+fmtMoney(it.prixRevente)+'</td>'+
-        '<td class="num '+(p>=0?"gain":"perte")+'">'+fmtMoney(p)+'</td>'+
-      '</tr>');
-    });
-    h.push('</tbody><tfoot><tr>'+
-             '<td colspan="3">Total</td>'+
-             '<td class="num">'+fmtMoney(cout)+'</td>'+
-             '<td class="num">'+fmtMoney(ca)+'</td>'+
-             '<td class="num">'+fmtMoney(benefice)+'</td>'+
-           '</tr></tfoot></table></div>');
+    if(ventes.length){
+      var caVentes = 0, coutVentes = 0, benefVentes = 0;
+      ventes.forEach(function(m){ caVentes += m.prixRevente; coutVentes += m.prixAchat; benefVentes += m.montant; });
+      h.push('<h2>Détail des ventes ('+ventes.length+')</h2>');
+      h.push('<div class="report-table-wrap"><table><thead><tr>'+
+               '<th>Article</th><th>Catégorie</th><th>Vendu le</th>'+
+               '<th class="num">Achat</th><th class="num">Revente</th><th class="num">Bénéfice</th>'+
+             '</tr></thead><tbody>');
+      ventes.forEach(function(m){
+        h.push('<tr>'+
+          '<td>'+escapeHtml(m.item.nom)+'</td>'+
+          '<td>'+escapeHtml(m.item.categorie)+'</td>'+
+          '<td>'+escapeHtml(dateCourte(m.date))+'</td>'+
+          '<td class="num">'+fmtMoney(m.prixAchat)+'</td>'+
+          '<td class="num">'+fmtMoney(m.prixRevente)+'</td>'+
+          '<td class="num '+(m.montant>=0?"gain":"perte")+'">'+fmtMoney(m.montant)+'</td>'+
+        '</tr>');
+      });
+      h.push('</tbody><tfoot><tr>'+
+               '<td colspan="3">Total des ventes</td>'+
+               '<td class="num">'+fmtMoney(coutVentes)+'</td>'+
+               '<td class="num">'+fmtMoney(caVentes)+'</td>'+
+               '<td class="num">'+fmtMoney(benefVentes)+'</td>'+
+             '</tr></tfoot></table></div>');
+    }
 
-    // Répartition par catégorie sur la période
+    if(retours.length){
+      var benefRetours = 0;
+      retours.forEach(function(m){ benefRetours += m.montant; });
+      h.push('<h2>Ventes annulées par l\'acheteur ('+retours.length+')</h2>');
+      h.push('<div class="report-table-wrap"><table><thead><tr>'+
+               '<th>Article</th><th>Catégorie</th><th>Vendu le</th>'+
+               '<th>Retourné le</th><th class="num">Revente</th><th class="num">Bénéfice annulé</th>'+
+             '</tr></thead><tbody>');
+      retours.forEach(function(m){
+        h.push('<tr>'+
+          '<td>'+escapeHtml(m.item.nom)+'</td>'+
+          '<td>'+escapeHtml(m.item.categorie)+'</td>'+
+          '<td>'+escapeHtml(dateCourte(m.venteDu))+'</td>'+
+          '<td>'+escapeHtml(dateCourte(m.date))+'</td>'+
+          '<td class="num">-'+fmtMoney(m.prixRevente)+'</td>'+
+          '<td class="num '+(m.montant>=0?"gain":"perte")+'">'+fmtMoney(m.montant)+'</td>'+
+        '</tr>');
+      });
+      h.push('</tbody><tfoot><tr>'+
+               '<td colspan="5">Total des annulations</td>'+
+               '<td class="num">'+fmtMoney(benefRetours)+'</td>'+
+             '</tr></tfoot></table></div>');
+    }
+
+    // Répartition par catégorie sur la période, retours déduits.
     var parCat = {};
-    ventes.forEach(function(it){
-      if(!parCat[it.categorie]) parCat[it.categorie] = {nb:0, benefice:0, ca:0};
-      parCat[it.categorie].nb++;
-      parCat[it.categorie].benefice += profitOf(it);
-      parCat[it.categorie].ca += it.prixRevente;
+    mvts.forEach(function(m){
+      var c = m.item.categorie;
+      if(!parCat[c]) parCat[c] = {nb:0, benefice:0, ca:0};
+      if(m.type === "vente"){ parCat[c].nb++; parCat[c].ca += m.prixRevente; }
+      else { parCat[c].ca -= m.prixRevente; }
+      parCat[c].benefice += m.montant;
     });
     var cats = Object.keys(parCat).sort(function(a,b){ return parCat[b].benefice - parCat[a].benefice; });
     h.push('<h2>Par catégorie</h2>');
@@ -1898,6 +2331,26 @@
     });
     h.push('</tbody></table></div>');
 
+    // Provision fiscale, uniquement si un taux a été renseigné.
+    var fisc = loadFiscal();
+    if(fisc.taux > 0){
+      var assiette = fisc.base === "ventes" ? ca : benefice;
+      var provision = Math.max(0, assiette) * fisc.taux / 100;
+      var libelleBase = fisc.base === "ventes" ? "le total des ventes" : "le bénéfice";
+      h.push('<h2>Provision fiscale</h2>');
+      h.push('<div class="report-table-wrap"><table><tbody>'+
+        '<tr><td>Taux appliqué</td><td class="num">'+
+          escapeHtml(String(fisc.taux).replace(".", ","))+' % sur '+escapeHtml(libelleBase)+'</td></tr>'+
+        '<tr><td>Assiette de la période</td><td class="num">'+fmtMoney(assiette)+'</td></tr>'+
+        '<tr><td>À provisionner</td><td class="num perte">'+fmtMoney(provision)+'</td></tr>'+
+        '<tr><td>Bénéfice net estimé</td><td class="num '+((benefice-provision)>=0?"gain":"perte")+'">'+
+          fmtMoney(benefice - provision)+'</td></tr>'+
+      '</tbody></table></div>');
+      h.push('<p class="report-note">Calcul indicatif à partir du taux que tu as renseigné : '+
+             'ce n\'est pas un avis fiscal.</p>');
+    }
+
+    // Les achats annulés n'apparaissent pas dans le rapport, à la demande.
     h.push('<p class="report-note">Articles encore en stock, toutes périodes confondues : '+
            stockNb+(stockNb>1?" articles":" article")+' pour '+fmtMoney(stockCapital)+
            ' de capital immobilisé (non compté dans le bénéfice ci-dessus).</p>');
@@ -1961,6 +2414,7 @@
     renderList();
     renderBackupCount();
     remplirPeriodes();
+    renderFiscal();
   }
 
   var resizeTimer = null;
