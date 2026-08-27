@@ -191,6 +191,40 @@
     line-height:1.45;
   }
 
+  /* ---------- Bandeau de mise à jour ---------- */
+  .bandeau-maj{
+    position:fixed;
+    left:12px;right:12px;
+    bottom:calc(70px + env(safe-area-inset-bottom));
+    max-width:496px;
+    margin:0 auto;
+    z-index:45;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+    background:var(--ink);
+    color:var(--bg);
+    border-radius:12px;
+    padding:.65rem .75rem;
+    font-size:.85rem;
+    box-shadow:0 6px 20px rgba(40,32,20,.3);
+  }
+  .bouton-maj{
+    flex:0 0 auto;
+    background:var(--accent);
+    color:var(--accent-ink);
+    border:none;
+    border-radius:8px;
+    padding:.45rem .85rem;
+    font-size:.82rem;
+    font-weight:600;
+    font-family:var(--font-body);
+    cursor:pointer;
+  }
+  @media print{ .bandeau-maj{display:none !important;} }
+  body.printing .bandeau-maj{display:none !important;}
+
   /* ---------- Rappel de sauvegarde ---------- */
   .rappel{
     margin:0 1.1rem .8rem;
@@ -2982,9 +3016,49 @@
 // cadre d'un artifact ni pour un fichier ouvert en local.
 if ("serviceWorker" in navigator && !window.claude
     && (location.protocol === "https:" || location.hostname === "localhost")) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () {});
-  });
+  window.addEventListener("load", surveillerMisesAJour);
+}
+
+/* Mises à jour de l'application.
+   L'app garde une copie d'elle-même pour fonctionner hors connexion. Quand une
+   nouvelle version est déposée, la copie déjà ouverte continue de tourner
+   jusqu'au prochain rechargement : on prévient donc explicitement, au lieu de
+   laisser croire qu'une nouveauté « ne marche pas ». */
+function surveillerMisesAJour() {
+  navigator.serviceWorker.register("sw.js").then(function (enregistrement) {
+    enregistrement.addEventListener("updatefound", function () {
+      var nouveau = enregistrement.installing;
+      if (!nouveau) return;
+      nouveau.addEventListener("statechange", function () {
+        // Un contrôleur existant = ce n'est pas la première installation,
+        // donc il s'agit bien d'une mise à jour.
+        if (nouveau.state === "installed" && navigator.serviceWorker.controller) {
+          bandeauMiseAJour();
+        }
+      });
+    });
+    enregistrement.update().catch(function () {});   // vérifie à chaque ouverture
+  }).catch(function () {});
+}
+
+function bandeauMiseAJour() {
+  if (document.getElementById("bandeau-maj")) return;
+  var bandeau = document.createElement("div");
+  bandeau.id = "bandeau-maj";
+  bandeau.className = "bandeau-maj";
+
+  var texte = document.createElement("span");
+  texte.textContent = "Une nouvelle version de l'appli est prête.";
+
+  var bouton = document.createElement("button");
+  bouton.type = "button";
+  bouton.className = "bouton-maj";
+  bouton.textContent = "Recharger";
+  bouton.addEventListener("click", function () { location.reload(); });
+
+  bandeau.appendChild(texte);
+  bandeau.appendChild(bouton);
+  document.body.appendChild(bandeau);
 }
 </script>
 </body>

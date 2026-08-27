@@ -3,8 +3,14 @@
  * Stratégie « réseau d'abord » : tant qu'il y a du réseau, on sert la
  * dernière version (donc les mises à jour arrivent toutes seules) ; sans
  * réseau, on rejoue la copie mise en cache.
+ *
+ * IMPORTANT — à chaque livraison : incrémenter VERSION ci-dessous.
+ * C'est la modification de ce fichier qui déclenche le bandeau
+ * « Une nouvelle version est prête » dans l'application. Sans elle, le
+ * navigateur ne voit aucune mise à jour et le bandeau n'apparaît jamais.
  */
-var CACHE = "reventes-v1";
+var VERSION = "1.1";
+var CACHE = "reventes-v" + VERSION;
 var ASSETS = [
   "./",
   "./index.html",
