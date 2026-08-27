@@ -191,6 +191,41 @@
     line-height:1.45;
   }
 
+  /* ---------- Rappel de sauvegarde ---------- */
+  .rappel{
+    margin:0 1.1rem .8rem;
+    padding:.75rem .8rem;
+    border-radius:12px;
+    background:var(--surface);
+    border:1px solid var(--accent);
+    border-left:4px solid var(--accent);
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    gap:.65rem;
+  }
+  .rappel[hidden]{display:none;}
+  .rappel-texte strong{
+    display:block;
+    font-family:var(--font-display);
+    font-size:.95rem;
+    color:var(--ink);
+    margin-bottom:.15rem;
+  }
+  .rappel-texte span{font-size:.8rem;color:var(--ink-muted);line-height:1.45;}
+  .rappel-actions{display:flex;gap:.5rem;}
+  .rappel-actions .btn-line{flex:0 0 auto;}
+  .rappel-actions .btn-primary{flex:1;padding:.5rem;font-size:.85rem;}
+
+  .derniere-sauvegarde{
+    font-size:.76rem;
+    color:var(--ink-muted);
+    margin:0 0 .7rem;
+  }
+  .derniere-sauvegarde strong{color:var(--ink);font-weight:600;}
+  .derniere-sauvegarde.alerte strong{color:var(--loss);}
+  .rappel-freq{margin-bottom:.75rem;}
+
   .backup-note{
     font-size:.8rem;
     color:var(--ink-muted);
@@ -817,6 +852,17 @@
 
   <p id="storageWarning" class="storage-warning" hidden></p>
 
+  <div id="rappelSauvegarde" class="rappel" hidden>
+    <div class="rappel-texte">
+      <strong id="rappelTitre"></strong>
+      <span id="rappelDetail"></span>
+    </div>
+    <div class="rappel-actions">
+      <button type="button" class="btn-line" id="rappelPlusTard">Plus tard</button>
+      <button type="button" class="btn-primary" id="rappelSauver">Sauvegarder</button>
+    </div>
+  </div>
+
   <main>
     <section id="view-dashboard" class="view active">
       <div class="stats-row">
@@ -916,6 +962,16 @@
           <span class="hint" id="backupCount">0 article</span>
         </div>
         <p class="backup-note">Tes données sont enregistrées uniquement sur cet appareil. Exporte un fichier de temps en temps pour ne rien perdre.</p>
+        <p class="derniere-sauvegarde" id="derniereSauvegarde"></p>
+        <label class="rappel-freq">
+          <span class="lbl">Me le rappeler</span>
+          <select id="rappelFrequence">
+            <option value="7">Chaque semaine</option>
+            <option value="15">Tous les 15 jours</option>
+            <option value="30">Chaque mois</option>
+            <option value="0">Jamais</option>
+          </select>
+        </label>
         <div class="backup-actions">
           <button type="button" class="btn-line" id="exportBtn">Sauvegarde (fichier)</button>
           <button type="button" class="btn-line" id="importBtn">Restaurer une sauvegarde</button>
@@ -2149,16 +2205,18 @@
     }
   }
 
-  function offrirFichier(contenu, nomFichier, typeMime, messageSucces){
+  function offrirFichier(contenu, nomFichier, typeMime, messageSucces, onSucces){
     lastExport = {contenu: contenu, nom: nomFichier};
     copyPanel.hidden = true;
     showCopyBtn.hidden = false;
+    function reussi(){
+      showBackupStatus(messageSucces, "ok");
+      if(onSucces) onSucces();
+    }
 
     downloadsReady.then(function(api){
       if(api && typeof api.save === "function"){
-        api.save({filename: nomFichier, data: contenu}).then(function(){
-          showBackupStatus(messageSucces, "ok");
-        }).catch(function(err){
+        api.save({filename: nomFichier, data: contenu}).then(reussi).catch(function(err){
           var code = err && err.code;
           // .csv fait partie des extensions « étendues » : si elle est refusée,
           // on repropose le même contenu en .txt, qu'Excel sait aussi ouvrir.
@@ -2166,6 +2224,7 @@
             var nomTxt = nomFichier.replace(/\.csv$/, ".txt");
             api.save({filename: nomTxt, data: contenu}).then(function(){
               showBackupStatus("Enregistré sous « " + nomTxt + " ». Renomme-le en .csv, ou ouvre-le depuis Excel : le contenu est le bon.", "ok");
+              if(onSucces) onSucces();
             }).catch(function(err2){
               var m2 = messageErreurTelechargement(err2 && err2.code);
               if(m2){ showBackupStatus(m2, "err"); } else { revealCopyPanel(); }
@@ -2197,7 +2256,7 @@
         a.click();
         document.body.removeChild(a);
         setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
-        showBackupStatus(messageSucces, "ok");
+        reussi();
       }catch(e){
         revealCopyPanel();
       }
@@ -2247,7 +2306,8 @@
     var nom = "sauvegarde-reventes-" + todayISO() + ".json";
     offrirFichier(
       JSON.stringify(payload, null, 2), nom, "application/json",
-      "Sauvegarde de " + items.length + " article(s) enregistrée sous « " + nom + " »."
+      "Sauvegarde de " + items.length + " article(s) enregistrée sous « " + nom + " ».",
+      marquerSauvegarde   // le rappel ne se tait que si le fichier est bien sorti
     );
   });
 
@@ -2420,6 +2480,139 @@
       importFile.value = "";
     };
     reader.readAsText(file);
+  });
+
+  // ---------- Rappel de sauvegarde ----------
+  // Aucune donnée ne quitte l'appareil : on se contente de surveiller si le
+  // contenu a changé depuis la dernière sauvegarde, et depuis combien de temps.
+  var SAUVEGARDE_KEY = "revente_sauvegarde_v1";
+
+  function empreinte(items){
+    // Hash court des champs qui comptent : détecte ajouts, suppressions et
+    // modifications, sans stocker les données elles-mêmes.
+    var s = items.map(function(it){
+      return [it.id, it.nom, it.prixAchat, it.prixRevente, it.dateRevente,
+              it.annule, it.quantite, retoursDe(it).length].join("|");
+    }).sort().join("~");
+    var h = 5381;
+    for(var i = 0; i < s.length; i++){
+      h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    }
+    return items.length + ":" + h.toString(36);
+  }
+
+  function loadSauvegardeInfo(){
+    try{
+      var f = JSON.parse(localStorage.getItem(SAUVEGARDE_KEY) || "{}");
+      return {
+        date: typeof f.date === "string" ? f.date : null,
+        empreinte: typeof f.empreinte === "string" ? f.empreinte : null,
+        frequence: typeof f.frequence === "number" ? f.frequence : 7,
+        reporteAu: typeof f.reporteAu === "string" ? f.reporteAu : null
+      };
+    }catch(e){ return {date:null, empreinte:null, frequence:7, reporteAu:null}; }
+  }
+  function saveSauvegardeInfo(f){
+    try{ localStorage.setItem(SAUVEGARDE_KEY, JSON.stringify(f)); }catch(e){}
+  }
+
+  function joursDepuis(iso){
+    if(!iso) return null;
+    var d = new Date(iso + "T00:00:00");
+    if(isNaN(d)) return null;
+    return Math.floor((new Date(todayISO() + "T00:00:00") - d) / 86400000);
+  }
+
+  function marquerSauvegarde(){
+    var f = loadSauvegardeInfo();
+    f.date = todayISO();
+    f.empreinte = empreinte(loadItems());
+    f.reporteAu = null;
+    saveSauvegardeInfo(f);
+    renderRappel();
+  }
+
+  function renderRappel(){
+    var items = loadItems();
+    var f = loadSauvegardeInfo();
+    var bandeau = document.getElementById("rappelSauvegarde");
+    var ligne = document.getElementById("derniereSauvegarde");
+    var jours = joursDepuis(f.date);
+
+    document.getElementById("rappelFrequence").value = String(f.frequence);
+
+    // Rappel de l'état, toujours visible dans la carte Sauvegarde.
+    if(!f.date){
+      ligne.innerHTML = "Dernière sauvegarde : <strong>jamais</strong>";
+      ligne.className = "derniere-sauvegarde" + (items.length ? " alerte" : "");
+    } else {
+      var quand = jours === 0 ? "aujourd'hui"
+                : jours === 1 ? "hier"
+                : "il y a " + jours + " jours";
+      var aJour = f.empreinte === empreinte(items);
+      ligne.innerHTML = "Dernière sauvegarde : <strong>" + quand + "</strong>" +
+                        (aJour ? " — à jour" : " — modifiée depuis");
+      ligne.className = "derniere-sauvegarde" + (aJour ? "" : " alerte");
+    }
+
+    if(items.length === 0 || f.frequence === 0){ bandeau.hidden = true; return; }
+    if(f.reporteAu && f.reporteAu > todayISO()){ bandeau.hidden = true; return; }
+
+    var modifiee = f.empreinte !== empreinte(items);
+    var tropVieux = jours !== null && jours >= f.frequence;
+
+    if(!f.date){
+      document.getElementById("rappelTitre").textContent = "Sauvegarde tes données";
+      document.getElementById("rappelDetail").textContent =
+        "Tes " + items.length + " article(s) n'existent que sur cet appareil. " +
+        "Un fichier de sauvegarde te protège si tu changes de téléphone.";
+    } else if(modifiee && tropVieux){
+      document.getElementById("rappelTitre").textContent = "Sauvegarde à refaire";
+      document.getElementById("rappelDetail").textContent =
+        "Dernière sauvegarde il y a " + jours + " jours, et tes données ont changé depuis.";
+    } else if(modifiee){
+      document.getElementById("rappelTitre").textContent = "Modifications non sauvegardées";
+      document.getElementById("rappelDetail").textContent =
+        "Tu as modifié tes articles depuis ta dernière sauvegarde.";
+    } else if(tropVieux){
+      bandeau.hidden = true; // rien n'a changé : inutile d'insister
+      return;
+    } else {
+      bandeau.hidden = true;
+      return;
+    }
+    bandeau.hidden = false;
+  }
+
+  // toISOString() repasse par UTC et décale la date d'un jour en heure d'été :
+  // on formate à partir des composantes locales.
+  function isoDeDate(d){
+    return d.getFullYear() + "-" +
+           String(d.getMonth() + 1).padStart(2, "0") + "-" +
+           String(d.getDate()).padStart(2, "0");
+  }
+
+  document.getElementById("rappelPlusTard").addEventListener("click", function(){
+    var f = loadSauvegardeInfo();
+    var d = new Date(todayISO() + "T00:00:00");
+    d.setDate(d.getDate() + 2);
+    f.reporteAu = isoDeDate(d);
+    saveSauvegardeInfo(f);
+    renderRappel();
+  });
+
+  document.getElementById("rappelSauver").addEventListener("click", function(){
+    document.querySelector('.tab[data-view="dashboard"]').click();
+    document.getElementById("exportBtn").click();
+    document.getElementById("exportBtn").scrollIntoView({block:"center"});
+  });
+
+  document.getElementById("rappelFrequence").addEventListener("change", function(){
+    var f = loadSauvegardeInfo();
+    f.frequence = parseInt(this.value, 10) || 0;
+    f.reporteAu = null;
+    saveSauvegardeInfo(f);
+    renderRappel();
   });
 
   // ---------- Provision fiscale ----------
@@ -2764,6 +2957,7 @@
     renderBackupCount();
     remplirPeriodes();
     renderFiscal();
+    renderRappel();
   }
 
   var resizeTimer = null;
