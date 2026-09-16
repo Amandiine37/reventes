@@ -19,7 +19,8 @@
   try{
     var r = document.documentElement;
     var t = JSON.parse(localStorage.getItem("revente_apparence_v1") || "{}");
-    r.setAttribute("data-skin", t.skin === "ecolier" || t.skin === "machine" ? t.skin : "comptes");
+    var skins = ["comptes", "ecolier", "machine", "funky", "herbier", "deco"];
+    r.setAttribute("data-skin", skins.indexOf(t.skin) !== -1 ? t.skin : "comptes");
     r.setAttribute("data-mode", t.mode === "clair" || t.mode === "sombre" ? t.mode : "auto");
   }catch(e){}
 })();
@@ -119,6 +120,168 @@
     --profit:#6FC79A; --loss:#F08078;
     --shadow:0 1px 0 rgba(0,0,0,.45);
     --grain-1:rgba(220,230,255,.018); --grain-2:rgba(220,230,255,.012);
+  }
+
+  /* ========== 4. ANNÉES 70 ==========
+     Orange brûlé, moutarde, vert avocat et chocolat. Seul thème à assumer
+     les coins ronds et le Bookman des pochettes de disques. */
+  :root[data-skin="funky"]{
+    --bg:#F2E4C9;
+    --surface:#FBF1DC;
+    --surface-2:#F3E3C4;
+    --ink:#3B2412;
+    --ink-muted:#7A5334;
+    --border:#D9BE90;
+    --filet:#C9A870;
+    --accent:#AE4A14;
+    --accent-strong:#8C3A0F;
+    --accent-ink:#FFF6E3;
+    --moutarde:#C98A16;       /* la deuxième couleur de l'époque */
+    --motif:rgba(174,74,20,.13);
+    --profit:#4F6B1E;
+    --loss:#A32B1E;
+    --radius:14px;
+    --shadow:0 2px 0 rgba(59,36,18,.1);
+    --font-display:"Cooper Black","Bookman Old Style",Bookman,"Palatino Linotype",Georgia,serif;
+  }
+  /* Papier peint à chevrons : le fond n'est plus uni, il est tapissé. */
+  :root[data-skin="funky"] body{
+    background-image:
+      linear-gradient(135deg, var(--motif) 25%, transparent 25%),
+      linear-gradient(225deg, var(--motif) 25%, transparent 25%),
+      linear-gradient(45deg,  var(--motif) 25%, transparent 25%),
+      linear-gradient(315deg, var(--motif) 25%, transparent 25%);
+    background-position:13px 0, 13px 0, 0 0, 0 0;
+    background-size:26px 26px;
+  }
+  /* La moutarde signale les lots et le prix à viser. */
+  :root[data-skin="funky"] .tag.tag-lot{background:var(--moutarde);color:#2A1A05;border-color:transparent;}
+  :root[data-skin="funky"] .fab{box-shadow:0 0 0 4px var(--moutarde), 0 3px 8px rgba(59,36,18,.35);}
+  @media (prefers-color-scheme: dark){
+    :root[data-skin="funky"]:not([data-mode="clair"]){
+      --bg:#1E1410; --surface:#281A13; --surface-2:#33221A;
+      --ink:#FBEBD2; --ink-muted:#C4A47E; --border:#4A3325; --filet:#5C4030;
+      --accent:#F08A3C; --accent-strong:#FFA65C; --accent-ink:#2A1408;
+      --moutarde:#E0A93A; --motif:rgba(240,138,60,.12);
+      --profit:#A8C860; --loss:#F0785F;
+      --shadow:0 2px 0 rgba(0,0,0,.45);
+    }
+  }
+  :root[data-skin="funky"][data-mode="sombre"]{
+    --bg:#1E1410; --surface:#281A13; --surface-2:#33221A;
+    --ink:#FBEBD2; --ink-muted:#C4A47E; --border:#4A3325; --filet:#5C4030;
+    --accent:#F08A3C; --accent-strong:#FFA65C; --accent-ink:#2A1408;
+    --moutarde:#E0A93A; --motif:rgba(240,138,60,.12);
+    --profit:#A8C860; --loss:#F0785F;
+    --shadow:0 2px 0 rgba(0,0,0,.45);
+  }
+  /* Les autres thèmes sont carrés par principe ; celui-ci arrondit tout. */
+  :root[data-skin="funky"] button,
+  :root[data-skin="funky"] input,
+  :root[data-skin="funky"] select,
+  :root[data-skin="funky"] textarea,
+  :root[data-skin="funky"] .tag,
+  :root[data-skin="funky"] .item-thumb{border-radius:10px;}
+  :root[data-skin="funky"] .fab{border-radius:50%;}
+  :root[data-skin="funky"] .topbar h1{letter-spacing:.02em;}
+
+  /* ========== 6. ART DÉCO ==========
+     Or et bleu électrique. Les deux couleurs échangent leurs rôles : le jour,
+     le bleu porte les boutons et l'or ne sert que de filet ; la nuit, l'or
+     prend les boutons et le bleu devient l'éclat. */
+  :root[data-skin="deco"]{
+    --bg:#E3E7F0;
+    --surface:#F7F8FC;
+    --surface-2:#E9EDF6;
+    --ink:#131C33;
+    --ink-muted:#4C587A;
+    --border:#C2CADD;
+    --filet:#A9B4CE;
+    --accent:#123FBF;
+    --accent-strong:#0C2E8F;
+    --accent-ink:#F7F8FC;
+    --eclat:#8A660F;          /* or assez foncé pour porter du texte */
+    --profit:#146B4A;
+    --loss:#A8281F;
+    --shadow:0 1px 0 rgba(19,28,51,.08);
+    --font-display:Didot,"Bodoni MT","Big Caslon",Georgia,"Times New Roman",serif;
+    --grain-1:rgba(19,28,51,.02); --grain-2:rgba(138,102,15,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root[data-skin="deco"]:not([data-mode="clair"]){
+      --bg:#0A1024; --surface:#111A36; --surface-2:#182344;
+      --ink:#EAEFFA; --ink-muted:#9AA8CC; --border:#263258; --filet:#33406E;
+      --accent:#D9B65C; --accent-strong:#EBCE84; --accent-ink:#0A1024;
+      --eclat:#4C8CFF;
+      --profit:#5FD3A0; --loss:#FF8A7A;
+      --shadow:0 1px 0 rgba(0,0,0,.5);
+      --grain-1:rgba(217,182,92,.03); --grain-2:rgba(76,140,255,.05);
+    }
+  }
+  :root[data-skin="deco"][data-mode="sombre"]{
+    --bg:#0A1024; --surface:#111A36; --surface-2:#182344;
+    --ink:#EAEFFA; --ink-muted:#9AA8CC; --border:#263258; --filet:#33406E;
+    --accent:#D9B65C; --accent-strong:#EBCE84; --accent-ink:#0A1024;
+    --eclat:#4C8CFF;
+    --profit:#5FD3A0; --loss:#FF8A7A;
+    --shadow:0 1px 0 rgba(0,0,0,.5);
+    --grain-1:rgba(217,182,92,.03); --grain-2:rgba(76,140,255,.05);
+  }
+  /* Laque à filets verticaux, comme un panneau de paquebot. */
+  :root[data-skin="deco"] body{
+    background-image:repeating-linear-gradient(90deg, var(--grain-2) 0 1px, transparent 1px 26px);
+  }
+  /* La seconde couleur souligne, sans jamais porter de texte clair sur clair. */
+  :root[data-skin="deco"] .card-head,
+  :root[data-skin="deco"] .topbar{border-bottom-color:var(--eclat);}
+  :root[data-skin="deco"] .tab.active{box-shadow:inset 0 3px 0 var(--eclat);}
+  :root[data-skin="deco"] .tag.tag-lot{background:var(--eclat);color:var(--surface);border-color:transparent;}
+  :root[data-skin="deco"] .brand-mark{box-shadow:inset 0 0 0 1px var(--eclat);}
+  :root[data-skin="deco"] .topbar h1{letter-spacing:.14em;}
+
+  /* ========== 5. HERBIER ==========
+     Planche botanique : papier vergé, verts de feuillage, terre de Sienne
+     pour les pertes, et une serif gravée comme les légendes d'herbier. */
+  :root[data-skin="herbier"]{
+    --bg:#DFE3D3;
+    --surface:#F4F5EC;
+    --surface-2:#E7EADB;
+    --ink:#27321F;
+    --ink-muted:#5C6650;
+    --border:#C4CBB4;
+    --filet:#AEB89B;
+    --accent:#4A6B3A;
+    --accent-strong:#365027;
+    --accent-ink:#F6F7EE;
+    --profit:#2F6B3F;
+    --loss:#8A3B2E;
+    --shadow:0 1px 0 rgba(39,50,31,.07);
+    --font-display:Baskerville,"Baskerville Old Face","Palatino Linotype","Times New Roman",Georgia,serif;
+    --grain-1:rgba(39,50,31,.02); --grain-2:rgba(39,50,31,.03);
+  }
+  /* Papier vergé : de fines vergeures verticales, comme le papier d'herbier. */
+  :root[data-skin="herbier"] body{
+    background-image:repeating-linear-gradient(90deg, var(--grain-2) 0 1px, transparent 1px 7px);
+  }
+  :root[data-skin="herbier"] .topbar p,
+  :root[data-skin="herbier"] .card-head .hint{font-style:italic;}
+  @media (prefers-color-scheme: dark){
+    :root[data-skin="herbier"]:not([data-mode="clair"]){
+      --bg:#141A13; --surface:#1C231A; --surface-2:#242C21;
+      --ink:#E6EBDC; --ink-muted:#9DA890; --border:#333C2E; --filet:#424C3B;
+      --accent:#8FB877; --accent-strong:#A7CE8F; --accent-ink:#121710;
+      --profit:#7FC58D; --loss:#DE8B72;
+      --shadow:0 1px 0 rgba(0,0,0,.45);
+      --grain-1:rgba(220,235,205,.016); --grain-2:rgba(220,235,205,.022);
+    }
+  }
+  :root[data-skin="herbier"][data-mode="sombre"]{
+    --bg:#141A13; --surface:#1C231A; --surface-2:#242C21;
+    --ink:#E6EBDC; --ink-muted:#9DA890; --border:#333C2E; --filet:#424C3B;
+    --accent:#8FB877; --accent-strong:#A7CE8F; --accent-ink:#121710;
+    --profit:#7FC58D; --loss:#DE8B72;
+    --shadow:0 1px 0 rgba(0,0,0,.45);
+    --grain-1:rgba(220,235,205,.016); --grain-2:rgba(220,235,205,.022);
   }
 
   /* ========== 3. MACHINE À ÉCRIRE ==========
@@ -334,7 +497,8 @@
   .bandeau-maj{
     position:fixed;
     left:12px;right:12px;
-    bottom:calc(70px + env(safe-area-inset-bottom));
+    /* Au-dessus du bouton + (qui occupe déjà le bas droit), sinon il le masque. */
+    bottom:calc(128px + env(safe-area-inset-bottom));
     max-width:496px;
     margin:0 auto;
     z-index:45;
@@ -1179,7 +1343,7 @@
       <div class="card">
         <div class="card-head">
           <h2>Apparence</h2>
-          <span class="hint">trois thèmes</span>
+          <span class="hint">six thèmes</span>
         </div>
         <div class="apparence-controls">
           <label>
@@ -1188,6 +1352,9 @@
               <option value="comptes">Livre de comptes</option>
               <option value="ecolier">Cahier d'écolier</option>
               <option value="machine">Machine à écrire</option>
+              <option value="funky">Années 70</option>
+              <option value="herbier">Herbier</option>
+              <option value="deco">Art déco</option>
             </select>
           </label>
           <label>
@@ -2995,14 +3162,17 @@
   var NOTES_THEME = {
     comptes: "Papier de registre et encre ferro-gallique, laiton patiné, vert bouteille et rouge sang de bœuf.",
     ecolier: "Cahier Seyès : papier réglé, encre bleue et marge rouge.",
-    machine: "Papier pelure et ruban de machine à écrire, en Courier."
+    machine: "Papier pelure et ruban de machine à écrire, en Courier.",
+    funky: "Papier peint à chevrons, orange brûlé et moutarde : coins ronds et Bookman, comme une pochette de disque.",
+    herbier: "Planche botanique : papier vergé, verts de feuillage et légendes en italique.",
+    deco: "Or et bleu électrique : laque à filets, capitales espacées. Le jour le bleu mène, la nuit c'est l'or."
   };
 
   function loadApparence(){
     try{
       var a = JSON.parse(localStorage.getItem(APPARENCE_KEY) || "{}");
       return {
-        skin: (a.skin === "ecolier" || a.skin === "machine") ? a.skin : "comptes",
+        skin: ["comptes","ecolier","machine","funky","herbier","deco"].indexOf(a.skin) !== -1 ? a.skin : "comptes",
         mode: (a.mode === "clair" || a.mode === "sombre") ? a.mode : "auto"
       };
     }catch(e){ return {skin:"comptes", mode:"auto"}; }

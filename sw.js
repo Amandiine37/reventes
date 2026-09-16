@@ -9,7 +9,7 @@
  * « Une nouvelle version est prête » dans l'application. Sans elle, le
  * navigateur ne voit aucune mise à jour et le bandeau n'apparaît jamais.
  */
-var VERSION = "1.5";
+var VERSION = "1.8";
 var CACHE = "reventes-v" + VERSION;
 var ASSETS = [
   "./",
