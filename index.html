@@ -12,51 +12,151 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
+<script>
+// Appliqué avant l'affichage : sans cela l'app clignoterait dans le thème par
+// défaut avant de basculer sur celui qui a été choisi.
+(function(){
+  try{
+    var r = document.documentElement;
+    var t = JSON.parse(localStorage.getItem("revente_apparence_v1") || "{}");
+    r.setAttribute("data-skin", t.skin === "ecolier" || t.skin === "machine" ? t.skin : "comptes");
+    r.setAttribute("data-mode", t.mode === "clair" || t.mode === "sombre" ? t.mode : "auto");
+  }catch(e){}
+})();
+</script>
 <style>
+  /* ===================================================================
+     THÈMES
+     Deux réglages indépendants, posés sur <html> :
+       data-skin  = comptes | ecolier | machine   (l'univers visuel)
+       data-mode  = auto | clair | sombre         (la luminosité)
+     Chaque thème définit sa version claire puis sa version sombre. Toutes
+     les teintes portant du texte sont tenues au-dessus du seuil de
+     lisibilité (contraste 4,5), dans les deux luminosités.
+     =================================================================== */
+
+  /* --- Réglages communs à tous les thèmes --- */
   :root{
-    --bg:#EDE8DE;
-    --surface:#F8F4EA;
-    --surface-2:#F1EAD9;
-    --ink:#2A241C;
-    --ink-muted:#6B6154;
-    --border:#DAD2C0;
-    /* Teintes assombries juste ce qu'il faut pour que le texte posé dessus
-       reste lisible (contraste ≥ 4,5). Mêmes tons, simplement plus soutenus. */
-    --accent:#96632A;
-    --accent-strong:#7C501D;
-    --accent-ink:#FFFFFF;
-    --profit:#2F6B48;
-    --loss:#9E3F34;
-    --radius:14px;
-    --shadow:0 1px 2px rgba(42,36,28,.08), 0 6px 16px rgba(42,36,28,.07);
-    --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --radius:3px;             /* le papier ne s'arrondit pas */
     --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --grain-1:rgba(43,42,34,.022);
+    --grain-2:rgba(43,42,34,.016);
+    --grain-pas:3px;
   }
+
+  /* ========== 1. LIVRE DE COMPTES ==========
+     Papier de registre, encre ferro-gallique, laiton patiné,
+     vert bouteille et rouge sang de bœuf. */
+  :root, :root[data-skin="comptes"]{
+    --bg:#E4E2D5;
+    --surface:#F2F0E6;
+    --surface-2:#E8E5D6;
+    --ink:#2B2A22;
+    --ink-muted:#5E5A4B;
+    --border:#C9C5B0;
+    --filet:#B9B49B;
+    --accent:#6E5426;
+    --accent-strong:#54401A;
+    --accent-ink:#F7F5EA;
+    --profit:#2E5E3A;
+    --loss:#8C2F24;
+    --shadow:0 1px 0 rgba(43,42,34,.06);
+    --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  }
+  /* Le même registre, mais à la lampe. */
   @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#1C1712;
-      --surface:#241E17;
-      --surface-2:#2C2419;
-      --ink:#EEE7D8;
-      --ink-muted:#A89A82;
-      --border:#3A3226;
-      --accent:#D9A354;
-      --accent-strong:#E7B76B;
-      --accent-ink:#221805;
-      --profit:#6FBF8B;
-      --loss:#E08571;
-      --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.4);
+    :root:not([data-mode="clair"]), :root[data-skin="comptes"]:not([data-mode="clair"]){
+      --bg:#191814; --surface:#21201A; --surface-2:#2A2822;
+      --ink:#EDE9DA; --ink-muted:#A49E8B; --border:#3B382E; --filet:#4A463A;
+      --accent:#C9A24E; --accent-strong:#DDB868; --accent-ink:#1B1609;
+      --profit:#7FBF8E; --loss:#E08C79;
+      --shadow:0 1px 0 rgba(0,0,0,.4);
+      --grain-1:rgba(255,252,240,.016); --grain-2:rgba(255,252,240,.012);
     }
   }
-  :root[data-theme="dark"]{
-    --bg:#1C1712; --surface:#241E17; --surface-2:#2C2419; --ink:#EEE7D8; --ink-muted:#A89A82;
-    --border:#3A3226; --accent:#D9A354; --accent-strong:#E7B76B; --accent-ink:#221805;
-    --profit:#6FBF8B; --loss:#E08571; --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.4);
+  :root[data-mode="sombre"], :root[data-skin="comptes"][data-mode="sombre"]{
+    --bg:#191814; --surface:#21201A; --surface-2:#2A2822;
+    --ink:#EDE9DA; --ink-muted:#A49E8B; --border:#3B382E; --filet:#4A463A;
+    --accent:#C9A24E; --accent-strong:#DDB868; --accent-ink:#1B1609;
+    --profit:#7FBF8E; --loss:#E08C79;
+    --shadow:0 1px 0 rgba(0,0,0,.4);
+    --grain-1:rgba(255,252,240,.016); --grain-2:rgba(255,252,240,.012);
   }
-  :root[data-theme="light"]{
-    --bg:#EDE8DE; --surface:#F8F4EA; --surface-2:#F1EAD9; --ink:#2A241C; --ink-muted:#6B6154;
-    --border:#DAD2C0; --accent:#96632A; --accent-strong:#7C501D; --accent-ink:#FFFFFF;
-    --profit:#2F6B48; --loss:#9E3F34; --shadow:0 1px 2px rgba(42,36,28,.08), 0 6px 16px rgba(42,36,28,.07);
+
+  /* ========== 2. CAHIER D'ÉCOLIER ==========
+     Papier Seyès, encre bleue, marge rouge, lettres d'abécédaire. */
+  :root[data-skin="ecolier"]{
+    --bg:#DCE0E6;
+    --surface:#FBFBF6;
+    --surface-2:#EDF0F4;
+    --ink:#1F2A44;
+    --ink-muted:#56607A;
+    --border:#C3CAD6;
+    --filet:#A9BBD8;
+    --accent:#2E4B8F;
+    --accent-strong:#1E3468;
+    --accent-ink:#FBFBF6;
+    --profit:#1F6B4A;
+    --loss:#B3261E;
+    --shadow:0 1px 0 rgba(31,42,68,.07);
+    --font-display:"Century Gothic","Avenir Next",Avenir,"Trebuchet MS","Segoe UI",sans-serif;
+    --grain-1:rgba(31,42,68,.02); --grain-2:rgba(31,42,68,.014);
+  }
+  @media (prefers-color-scheme: dark){
+    :root[data-skin="ecolier"]:not([data-mode="clair"]){
+      --bg:#14181F; --surface:#1B212B; --surface-2:#232B36;
+      --ink:#E6EAF2; --ink-muted:#9AA6BC; --border:#333C4A; --filet:#3E4B61;
+      --accent:#7FA6E8; --accent-strong:#9DBCF2; --accent-ink:#0F1621;
+      --profit:#6FC79A; --loss:#F08078;
+      --shadow:0 1px 0 rgba(0,0,0,.45);
+      --grain-1:rgba(220,230,255,.018); --grain-2:rgba(220,230,255,.012);
+    }
+  }
+  :root[data-skin="ecolier"][data-mode="sombre"]{
+    --bg:#14181F; --surface:#1B212B; --surface-2:#232B36;
+    --ink:#E6EAF2; --ink-muted:#9AA6BC; --border:#333C4A; --filet:#3E4B61;
+    --accent:#7FA6E8; --accent-strong:#9DBCF2; --accent-ink:#0F1621;
+    --profit:#6FC79A; --loss:#F08078;
+    --shadow:0 1px 0 rgba(0,0,0,.45);
+    --grain-1:rgba(220,230,255,.018); --grain-2:rgba(220,230,255,.012);
+  }
+
+  /* ========== 3. MACHINE À ÉCRIRE ==========
+     Papier pelure, carbone, ruban rouge — et le Courier de rigueur. */
+  :root[data-skin="machine"]{
+    --bg:#D8D6CF;
+    --surface:#EFEEE8;
+    --surface-2:#E3E1D9;
+    --ink:#23231F;
+    --ink-muted:#5A594F;
+    --border:#BFBDB2;
+    --filet:#AEAB9E;
+    --accent:#3A3833;
+    --accent-strong:#23221E;
+    --accent-ink:#F3F2EC;
+    --profit:#2A5E44;
+    --loss:#B8241A;
+    --shadow:0 1px 0 rgba(35,35,31,.08);
+    --font-display:"Courier New",Courier,"Nimbus Mono PS",monospace;
+    --grain-1:rgba(35,35,31,.026); --grain-2:rgba(35,35,31,.018);
+  }
+  @media (prefers-color-scheme: dark){
+    :root[data-skin="machine"]:not([data-mode="clair"]){
+      --bg:#17171A; --surface:#1F1F23; --surface-2:#27272C;
+      --ink:#E9E8E2; --ink-muted:#9C9A90; --border:#35353B; --filet:#45444B;
+      --accent:#C9C7BC; --accent-strong:#E0DED2; --accent-ink:#1B1B1F;
+      --profit:#79C49A; --loss:#F0776C;
+      --shadow:0 1px 0 rgba(0,0,0,.5);
+      --grain-1:rgba(240,240,232,.02); --grain-2:rgba(240,240,232,.014);
+    }
+  }
+  :root[data-skin="machine"][data-mode="sombre"]{
+    --bg:#17171A; --surface:#1F1F23; --surface-2:#27272C;
+    --ink:#E9E8E2; --ink-muted:#9C9A90; --border:#35353B; --filet:#45444B;
+    --accent:#C9C7BC; --accent-strong:#E0DED2; --accent-ink:#1B1B1F;
+    --profit:#79C49A; --loss:#F0776C;
+    --shadow:0 1px 0 rgba(0,0,0,.5);
+    --grain-1:rgba(240,240,232,.02); --grain-2:rgba(240,240,232,.014);
   }
 
   *{box-sizing:border-box;}
@@ -72,6 +172,14 @@
     color:var(--ink);
     font-family:var(--font-body);
     -webkit-font-smoothing:antialiased;
+    /* Grain de papier : deux trames très pâles, rien d'image. */
+    background-image:
+      repeating-linear-gradient(0deg, var(--grain-1) 0 1px, transparent 1px var(--grain-pas)),
+      repeating-linear-gradient(90deg, var(--grain-2) 0 1px, transparent 1px 4px);
+  }
+  /* Le cahier d'écolier a des lignes, pas un grain : réglure horizontale. */
+  :root[data-skin="ecolier"] body{
+    background-image:repeating-linear-gradient(0deg, var(--grain-1) 0 1px, transparent 1px 9px);
   }
   .app{
     max-width:520px;
@@ -82,30 +190,44 @@
     padding-bottom:84px;
     position:relative;
   }
+  /* En-tête : la page de garde du registre, filet double à la façon d'une
+     réglure imprimée. */
   .topbar{
     display:flex;
     align-items:center;
-    gap:.6rem;
-    padding:1.1rem 1.1rem .8rem;
+    gap:.7rem;
+    padding:1rem 1.1rem .7rem;
     position:sticky;
     top:0;
     background:var(--bg);
+    border-bottom:3px double var(--filet);
     z-index:5;
   }
   .brand-mark{
-    width:34px;height:34px;border-radius:9px;
+    width:36px;height:36px;border-radius:2px;
     background:var(--accent);color:var(--accent-ink);
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
   }
-  .brand-mark svg{width:18px;height:18px;}
+  .brand-mark svg{width:19px;height:19px;}
   .topbar h1{
     font-family:var(--font-display);
-    font-size:1.28rem;
+    font-size:1.2rem;
     font-weight:600;
     margin:0;
-    letter-spacing:.2px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
   }
-  .topbar p{margin:0;font-size:.78rem;color:var(--ink-muted);}
+  .topbar p{
+    margin:.1rem 0 0;
+    font-family:var(--font-display);
+    font-size:.76rem;
+    font-style:italic;
+    color:var(--ink-muted);
+  }
+  /* Le Courier est large : on resserre pour tenir sur une ligne. */
+  :root[data-skin="machine"] .topbar h1{font-size:1.04rem;letter-spacing:.03em;}
+  :root[data-skin="machine"] .topbar p{font-size:.66rem;}
 
   main{flex:1;padding:.2rem 1.1rem 1rem;}
   .view{display:none;}
@@ -121,21 +243,25 @@
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:var(--radius);
-    padding:.75rem .85rem;
+    padding:.7rem .8rem .75rem;
     box-shadow:var(--shadow);
   }
   .stat-card .stat-label{
+    font-family:var(--font-display);
     font-size:.68rem;
     text-transform:uppercase;
-    letter-spacing:.06em;
+    letter-spacing:.09em;
     color:var(--ink-muted);
     display:block;
-    margin-bottom:.3rem;
+    padding-bottom:.35rem;
+    margin-bottom:.35rem;
+    border-bottom:1px solid var(--filet);
   }
   .stat-card .stat-value{
     font-family:var(--font-display);
-    font-size:1.32rem;
-    font-variant-numeric:tabular-nums;
+    font-size:1.38rem;
+    /* Chiffres elzéviriens : ceux des vieux registres, qui montent et descendent. */
+    font-variant-numeric:oldstyle-nums;
     font-weight:600;
   }
   .stat-value.profit{color:var(--profit);}
@@ -153,13 +279,18 @@
     display:flex;
     align-items:baseline;
     justify-content:space-between;
-    margin-bottom:.55rem;
+    gap:.6rem;
+    padding-bottom:.45rem;
+    margin-bottom:.7rem;
+    border-bottom:3px double var(--filet);
   }
   .card-head h2{
     font-family:var(--font-display);
-    font-size:1rem;
+    font-size:.98rem;
     margin:0;
     font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.07em;
   }
   .card-head .hint{font-size:.72rem;color:var(--ink-muted);}
 
@@ -182,16 +313,16 @@
   .cat-row-top .cat-value{font-variant-numeric:tabular-nums;font-weight:600;}
   .cat-track{
     height:7px;
-    border-radius:99px;
+    border-radius:1px;
     background:var(--surface-2);
     overflow:hidden;
   }
-  .cat-fill{height:100%;border-radius:99px;}
+  .cat-fill{height:100%;border-radius:1px;}
 
   .storage-warning{
     margin:0 1.1rem .7rem;
     padding:.6rem .75rem;
-    border-radius:10px;
+    border-radius:2px;
     background:var(--surface-2);
     border:1px solid var(--loss);
     color:var(--loss);
@@ -213,7 +344,7 @@
     gap:.75rem;
     background:var(--ink);
     color:var(--bg);
-    border-radius:12px;
+    border-radius:2px;
     padding:.65rem .75rem;
     font-size:.85rem;
     box-shadow:0 6px 20px rgba(40,32,20,.3);
@@ -223,7 +354,7 @@
     background:var(--accent);
     color:var(--accent-ink);
     border:none;
-    border-radius:8px;
+    border-radius:2px;
     padding:.45rem .85rem;
     font-size:.82rem;
     font-weight:600;
@@ -234,17 +365,18 @@
   body.printing .bandeau-maj{display:none !important;}
 
   /* ---------- Rappel de sauvegarde ---------- */
+  /* Note glissée dans le registre : filet double en tête, coins nets. */
   .rappel{
-    margin:0 1.1rem .8rem;
-    padding:.75rem .8rem;
-    border-radius:12px;
-    background:var(--surface);
-    border:1px solid var(--accent);
-    border-left:4px solid var(--accent);
+    margin:.7rem 1.1rem .8rem;
+    padding:.7rem .8rem .75rem;
+    border-radius:var(--radius);
+    background:var(--surface-2);
+    border:1px solid var(--filet);
+    border-top:3px double var(--accent);
     box-shadow:var(--shadow);
     display:flex;
     flex-direction:column;
-    gap:.65rem;
+    gap:.6rem;
   }
   .rappel[hidden]{display:none;}
   .rappel-texte strong{
@@ -280,7 +412,7 @@
     font-size:.8rem;
     margin:.7rem 0 0;
     padding:.5rem .6rem;
-    border-radius:8px;
+    border-radius:2px;
     background:var(--surface-2);
     color:var(--ink);
   }
@@ -298,7 +430,7 @@
     color:var(--ink);
     background:var(--surface-2);
     border:1px solid var(--border);
-    border-radius:9px;
+    border-radius:2px;
     padding:.55rem .6rem;
     resize:vertical;
   }
@@ -316,7 +448,7 @@
     padding:.5rem .65rem;
     background:var(--surface-2);
     border:1px solid var(--border);
-    border-radius:9px;
+    border-radius:2px;
     font-size:.8rem;
     color:var(--ink-muted);
   }
@@ -328,7 +460,7 @@
   }
   .price-hint .use-target{
     background:none;border:1px solid var(--accent);color:var(--accent-strong);
-    border-radius:7px;padding:.25rem .5rem;font-size:.72rem;cursor:pointer;
+    border-radius:2px;padding:.25rem .5rem;font-size:.72rem;cursor:pointer;
     font-family:var(--font-body);white-space:nowrap;
   }
 
@@ -338,7 +470,7 @@
     max-width:520px;
     margin:0 auto;
     background:var(--surface);
-    border-radius:18px 18px 0 0;
+    border-radius:2px 2px 0 0;
     padding:1.1rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
     box-shadow:0 -10px 30px rgba(0,0,0,.25);
     display:flex;flex-direction:column;gap:.9rem;
@@ -350,7 +482,7 @@
   .confirm-box p{margin:0;font-size:.85rem;color:var(--ink-muted);line-height:1.45;}
   .confirm-actions{display:flex;gap:.6rem;}
   .confirm-actions button{
-    flex:1;border-radius:10px;padding:.7rem;font-size:.9rem;
+    flex:1;border-radius:2px;padding:.7rem;font-size:.9rem;
     cursor:pointer;font-family:var(--font-body);
   }
   .btn-cancel{background:var(--surface-2);border:1px solid var(--border);color:var(--ink);}
@@ -388,76 +520,111 @@
     color:var(--ink-muted);
     font-variant-numeric:tabular-nums;
   }
+  /* Onglets de classement, pas des pastilles. */
   .chip{
-    border:1px solid var(--border);
+    border:1px solid var(--filet);
     background:var(--surface);
     color:var(--ink-muted);
-    border-radius:99px;
-    padding:.38rem .85rem;
-    font-size:.8rem;
-    font-family:var(--font-body);
+    border-radius:2px;
+    padding:.34rem .7rem;
+    font-size:.7rem;
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    letter-spacing:.07em;
     cursor:pointer;
   }
   .chip.active{
     background:var(--accent);
-    border-color:var(--accent);
+    border-color:var(--accent-strong);
     color:var(--accent-ink);
-    font-weight:600;
+    font-weight:700;
   }
 
-  .item-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem;}
+  /* Le registre : une page réglée, une écriture par ligne — et non une pile
+     de cartes. Le filet sous chaque ligne fait tout le travail. */
+  .item-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .item-list li:last-child .item-row{border-bottom:none;}
   .item-row{
     display:flex;
     align-items:center;
     gap:.7rem;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:.6rem .7rem;
-    box-shadow:var(--shadow);
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--filet);
+    border-radius:0;
+    padding:.65rem .75rem;
     cursor:pointer;
     text-align:left;
     width:100%;
-    font-family:var(--font-body);
+    font-family:var(--font-display);
     color:var(--ink);
     position:relative;
   }
+  .item-row:active{background:var(--surface-2);}
   .item-row:focus-visible, .chip:focus-visible, .fab:focus-visible, .tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
     outline:2px solid var(--accent);
     outline-offset:2px;
   }
+  /* Vignette comme une photographie collée dans le registre. */
   .item-thumb{
-    width:44px;height:44px;border-radius:9px;
+    width:44px;height:44px;border-radius:1px;
     background:var(--surface-2);
     flex-shrink:0;
     object-fit:cover;
-    border:1px solid var(--border);
+    border:1px solid var(--filet);
+    box-shadow:0 1px 0 rgba(43,42,34,.12);
   }
   .item-thumb.placeholder{display:flex;align-items:center;justify-content:center;color:var(--ink-muted);}
   .item-thumb.placeholder svg{width:18px;height:18px;}
   .item-main{flex:1;min-width:0;}
-  .item-main .item-name{font-weight:600;font-size:.92rem;display:block;}
+  .item-main .item-name{font-weight:600;font-size:1rem;display:block;letter-spacing:.01em;}
   .item-meta{
-    font-size:.72rem;color:var(--ink-muted);
-    display:flex;gap:.4rem;align-items:center;margin-top:.15rem;
+    font-family:var(--font-body);
+    font-size:.7rem;color:var(--ink-muted);
+    display:flex;gap:.4rem .45rem;align-items:center;margin-top:.2rem;
+    /* Le tampon « annulé » prend de la place : la ligne passe au-dessous
+       plutôt que de couper une date en deux. */
+    flex-wrap:wrap;
   }
+  .item-meta > span{white-space:nowrap;}
   .tag{
-    background:var(--surface-2);
-    border-radius:99px;
-    padding:.08rem .5rem;
-    font-size:.68rem;
+    background:transparent;
+    border:1px solid var(--filet);
+    border-radius:2px;
+    padding:.05rem .4rem;
+    font-size:.64rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
     color:var(--ink-muted);
   }
-  .item-amount{text-align:right;flex-shrink:0;}
+  /* Colonne des montants : alignée au centime, comme une colonne de registre. */
+  .item-amount{
+    text-align:right;flex-shrink:0;
+    padding-left:.6rem;
+    border-left:1px solid var(--filet);
+  }
   .item-amount .amt{
     font-variant-numeric:tabular-nums;
     font-weight:600;
-    font-size:.92rem;
+    font-size:1rem;
     display:block;
   }
   .item-amount .amt.profit{color:var(--profit);}
   .item-amount .amt.loss{color:var(--loss);}
-  .item-amount .status{font-size:.68rem;color:var(--ink-muted);}
+  .item-amount .status{
+    font-family:var(--font-body);
+    font-size:.66rem;color:var(--ink-muted);
+    text-transform:lowercase;letter-spacing:.03em;
+  }
 
   .tabbar{
     position:fixed;
@@ -467,31 +634,40 @@
     background:transparent;
     z-index:6;
   }
+  /* Pied de page : deux onglets comme les intercalaires d'un classeur. */
   .tabbar-inner{
     width:100%;
     max-width:520px;
     display:flex;
     background:var(--surface);
-    border-top:1px solid var(--border);
-    box-shadow:0 -2px 10px rgba(0,0,0,.05);
+    border-top:3px double var(--filet);
   }
   .tab{
     flex:1;
     border:none;
     background:transparent;
     color:var(--ink-muted);
-    padding:.65rem 0 calc(.55rem + env(safe-area-inset-bottom));
-    font-family:var(--font-body);
-    font-size:.72rem;
+    padding:.6rem 0 calc(.5rem + env(safe-area-inset-bottom));
+    font-family:var(--font-display);
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:.2rem;
+    gap:.22rem;
     cursor:pointer;
   }
-  .tab svg{width:20px;height:20px;}
-  .tab.active{color:var(--accent-strong);font-weight:600;}
+  .tab + .tab{border-left:1px solid var(--filet);}
+  .tab svg{width:19px;height:19px;}
+  .tab.active{
+    color:var(--accent-strong);
+    font-weight:700;
+    background:var(--surface-2);
+    box-shadow:inset 0 3px 0 var(--accent);
+  }
 
+  /* Bouton d'ajout : un jeton de laiton, pas une pastille de plastique. */
   .fab{
     position:fixed;
     right:calc(50% - 260px + 20px);
@@ -500,10 +676,11 @@
     border-radius:50%;
     background:var(--accent);
     color:var(--accent-ink);
-    border:none;
-    font-size:1.6rem;
+    border:1px solid var(--accent-strong);
+    font-family:var(--font-display);
+    font-size:1.7rem;
     line-height:1;
-    box-shadow:0 6px 16px rgba(42,36,28,.25);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 2px 6px rgba(43,42,34,.3);
     cursor:pointer;
     z-index:7;
     display:flex;align-items:center;justify-content:center;
@@ -529,7 +706,7 @@
     max-height:88dvh;
     overflow-y:auto;
     background:var(--surface);
-    border-radius:18px 18px 0 0;
+    border-radius:2px 2px 0 0;
     padding:1rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
     box-shadow:0 -10px 30px rgba(0,0,0,.2);
     display:flex;
@@ -546,7 +723,7 @@
   }
   .icon-btn{
     border:none;background:var(--surface-2);color:var(--ink);
-    width:32px;height:32px;border-radius:9px;
+    width:32px;height:32px;border-radius:2px;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
   .icon-btn svg{width:16px;height:16px;}
@@ -559,7 +736,7 @@
     color:var(--ink);
     background:var(--surface-2);
     border:1px solid var(--border);
-    border-radius:9px;
+    border-radius:2px;
     padding:.55rem .65rem;
     width:100%;
   }
@@ -568,7 +745,7 @@
     display:flex;align-items:center;gap:.55rem;
     background:var(--surface-2);
     border:1px solid var(--border);
-    border-radius:9px;
+    border-radius:2px;
     padding:.6rem .7rem;
   }
   .checkbox-row input{width:auto;}
@@ -579,13 +756,13 @@
 
   .photo-field{display:flex;align-items:center;gap:.7rem;}
   .photo-preview{
-    width:64px;height:64px;border-radius:11px;object-fit:cover;
+    width:64px;height:64px;border-radius:2px;object-fit:cover;
     background:var(--surface-2);border:1px solid var(--border);flex-shrink:0;
   }
   .photo-actions{display:flex;flex-direction:column;gap:.35rem;}
   .btn-line{
     background:none;border:1px solid var(--border);color:var(--ink);
-    border-radius:8px;padding:.4rem .6rem;font-size:.78rem;cursor:pointer;
+    border-radius:2px;padding:.4rem .6rem;font-size:.78rem;cursor:pointer;
     font-family:var(--font-body);
   }
 
@@ -602,12 +779,12 @@
   .form-actions{display:flex;gap:.6rem;margin-top:.2rem;}
   .btn-primary{
     flex:1;background:var(--accent);color:var(--accent-ink);border:none;
-    border-radius:10px;padding:.75rem;font-size:.92rem;font-weight:600;
+    border-radius:2px;padding:.75rem;font-size:.92rem;font-weight:600;
     cursor:pointer;font-family:var(--font-body);
   }
   .btn-danger{
     background:none;border:1px solid var(--loss);color:var(--loss);
-    border-radius:10px;padding:.75rem .9rem;font-size:.85rem;cursor:pointer;
+    border-radius:2px;padding:.75rem .9rem;font-size:.85rem;cursor:pointer;
     font-family:var(--font-body);
   }
   input[type="file"]{display:none;}
@@ -619,13 +796,13 @@
   .lot-fields[hidden]{display:none;}
   .lot-cout{
     margin:0;padding:.5rem .65rem;
-    background:var(--surface-2);border:1px solid var(--border);border-radius:9px;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:2px;
     font-size:.8rem;color:var(--ink-muted);
   }
   .lot-cout[hidden]{display:none;}
   .lot-cout strong{color:var(--accent-strong);font-variant-numeric:tabular-nums;}
   .lot-mode{
-    border:1px solid var(--border);border-radius:9px;
+    border:1px solid var(--border);border-radius:2px;
     padding:.6rem .65rem;margin:0;
     display:flex;flex-direction:column;gap:.5rem;
   }
@@ -636,7 +813,7 @@
   .radio-row small{display:block;font-size:.72rem;color:var(--ink-muted);margin-top:.1rem;}
 
   .form-erreur{
-    margin:0;padding:.55rem .65rem;border-radius:9px;
+    margin:0;padding:.55rem .65rem;border-radius:2px;
     background:var(--surface-2);border:1px solid var(--loss);
     color:var(--loss);font-size:.8rem;line-height:1.45;
   }
@@ -647,7 +824,7 @@
   .partial-contexte{
     margin:0;font-size:.82rem;color:var(--ink-muted);
     background:var(--surface-2);border:1px solid var(--border);
-    border-radius:9px;padding:.55rem .65rem;line-height:1.5;
+    border-radius:2px;padding:.55rem .65rem;line-height:1.5;
   }
   .partial-contexte strong{color:var(--ink);}
   .partial-apercu{
@@ -663,6 +840,18 @@
     background:var(--accent);
     color:var(--accent-ink);
     font-weight:600;
+  }
+
+  /* ---------- Apparence ---------- */
+  .apparence-controls{display:flex;gap:.6rem;}
+  .apparence-controls label{flex:1;min-width:0;}
+  .apparence-note{
+    margin:.7rem 0 0;
+    font-size:.74rem;
+    color:var(--ink-muted);
+    font-style:italic;
+    font-family:var(--font-display);
+    line-height:1.5;
   }
 
   /* ---------- Provision fiscale ---------- */
@@ -704,7 +893,7 @@
     background:var(--surface-2);
     border:1px solid var(--border);
     border-left:3px solid var(--loss);
-    border-radius:8px;
+    border-radius:2px;
     padding:.55rem .65rem;
     line-height:1.5;
   }
@@ -719,14 +908,21 @@
   }
 
   /* Article annulé : présent pour la trace, mais visuellement mis de côté. */
-  .item-row.annule{opacity:.72;}
+  .item-row.annule{opacity:.78;}
   .item-row.annule .item-name{text-decoration:line-through;}
   .item-row.annule .amt{text-decoration:line-through;color:var(--ink-muted);}
   .item-row.annule .item-thumb{filter:grayscale(1);}
+  /* Tampon encreur : encre grasse, posé un peu de travers. */
   .tag.tag-annule{
     background:transparent;
-    border:1px solid var(--loss);
+    border:2px solid var(--loss);
+    border-radius:2px;
     color:var(--loss);
+    font-weight:700;
+    letter-spacing:.12em;
+    padding:.02rem .35rem;
+    transform:rotate(-4deg);
+    opacity:.85;
   }
 
   /* ---------- Rapport mensuel ---------- */
@@ -742,7 +938,7 @@
     max-height:92dvh;
     overflow-y:auto;
     background:var(--surface);
-    border-radius:18px 18px 0 0;
+    border-radius:2px 2px 0 0;
     box-shadow:0 -10px 30px rgba(0,0,0,.2);
   }
   .report-actions{
@@ -765,16 +961,18 @@
   .report-head{
     display:flex;align-items:flex-start;justify-content:space-between;
     gap:1rem;
-    border-bottom:2px solid var(--accent);
+    border-bottom:4px double var(--accent);
     padding-bottom:.7rem;
     margin-bottom:1rem;
   }
   .report-head h1{
     font-family:var(--font-display);
-    font-size:1.35rem;
-    margin:0 0 .15rem;
+    font-size:1.12rem;
+    margin:0 0 .2rem;
     font-weight:600;
-    letter-spacing:.2px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    text-wrap:balance;
   }
   .report-periode{
     font-size:.95rem;
@@ -804,7 +1002,7 @@
   }
   .report-kpi{
     border:1px solid var(--border);
-    border-radius:10px;
+    border-radius:2px;
     padding:.55rem .65rem;
     background:var(--surface-2);
   }
@@ -877,6 +1075,9 @@
   body.printing #formSheet,
   body.printing #confirmSheet,
   body.printing #storageWarning,
+  body.printing #rappelSauvegarde,
+  body.printing #partialSheet,
+  body.printing #bandeau-maj,
   body.printing .report-actions,
   body.printing #reportSheet .sheet-backdrop{display:none !important;}
   body.printing .app{max-width:none;padding-bottom:0;min-height:0;}
@@ -889,15 +1090,18 @@
 
   @media print{
     @page{size:A4 portrait;margin:14mm 13mm;}
-    /* Palette claire forcée : sinon un téléphone en thème sombre imprime noir. */
-    :root, :root[data-theme="dark"], :root[data-theme="light"]{
-      --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F4F1EA;
-      --ink:#1A1A1A; --ink-muted:#5A5A5A; --border:#C9C2B4;
-      --accent:#A9722F; --accent-strong:#8C5B22;
-      --profit:#256B3C; --loss:#A33528;
+    /* Palette claire forcée : sinon un téléphone en thème sombre imprime noir.
+       Le sélecteur doit être plus fort que [data-skin][data-mode], sinon le
+       thème choisi l'emporterait sur l'impression. */
+    :root, :root[data-skin][data-mode], :root[data-skin]:not([data-mode="clair"]){
+      --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F4F2EA;
+      --ink:#1A1A1A; --ink-muted:#565348; --border:#BFBAA6; --filet:#9C9784;
+      --accent:#6E5426; --accent-strong:#54401A;
+      --profit:#25563A; --loss:#7E2A20;
       --shadow:none;
     }
-    html, body{background:#fff !important;}
+    /* Le grain de papier n'a rien à faire sur du vrai papier. */
+    html, body{background:#fff !important;background-image:none !important;}
     .report h2{break-after:avoid;}
     .report table{break-inside:auto;}
     .report tr{break-inside:avoid;}
@@ -970,6 +1174,32 @@
         </div>
         <div id="categoryBars" class="cat-bars"></div>
         <p id="categoryEmpty" class="empty-hint" hidden>Ajoute des ventes pour voir la répartition par catégorie.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Apparence</h2>
+          <span class="hint">trois thèmes</span>
+        </div>
+        <div class="apparence-controls">
+          <label>
+            <span class="lbl">Thème</span>
+            <select id="choixSkin">
+              <option value="comptes">Livre de comptes</option>
+              <option value="ecolier">Cahier d'écolier</option>
+              <option value="machine">Machine à écrire</option>
+            </select>
+          </label>
+          <label>
+            <span class="lbl">Luminosité</span>
+            <select id="choixMode">
+              <option value="auto">Selon le téléphone</option>
+              <option value="clair">Toujours clair</option>
+              <option value="sombre">Toujours sombre</option>
+            </select>
+          </label>
+        </div>
+        <p class="apparence-note" id="apparenceNote"></p>
       </div>
 
       <div class="card">
@@ -2757,6 +2987,45 @@
     renderRappel();
   });
 
+  // ---------- Apparence ----------
+  var APPARENCE_KEY = "revente_apparence_v1";
+  var choixSkin = document.getElementById("choixSkin");
+  var choixMode = document.getElementById("choixMode");
+
+  var NOTES_THEME = {
+    comptes: "Papier de registre et encre ferro-gallique, laiton patiné, vert bouteille et rouge sang de bœuf.",
+    ecolier: "Cahier Seyès : papier réglé, encre bleue et marge rouge.",
+    machine: "Papier pelure et ruban de machine à écrire, en Courier."
+  };
+
+  function loadApparence(){
+    try{
+      var a = JSON.parse(localStorage.getItem(APPARENCE_KEY) || "{}");
+      return {
+        skin: (a.skin === "ecolier" || a.skin === "machine") ? a.skin : "comptes",
+        mode: (a.mode === "clair" || a.mode === "sombre") ? a.mode : "auto"
+      };
+    }catch(e){ return {skin:"comptes", mode:"auto"}; }
+  }
+
+  function appliquerApparence(a){
+    document.documentElement.setAttribute("data-skin", a.skin);
+    document.documentElement.setAttribute("data-mode", a.mode);
+    choixSkin.value = a.skin;
+    choixMode.value = a.mode;
+    document.getElementById("apparenceNote").textContent = NOTES_THEME[a.skin] || "";
+    try{ localStorage.setItem(APPARENCE_KEY, JSON.stringify(a)); }catch(e){}
+    // Le graphique est dessiné : il ne suit pas les couleurs tout seul.
+    renderDashboard();
+  }
+
+  choixSkin.addEventListener("change", function(){
+    var a = loadApparence(); a.skin = choixSkin.value; appliquerApparence(a);
+  });
+  choixMode.addEventListener("change", function(){
+    var a = loadApparence(); a.mode = choixMode.value; appliquerApparence(a);
+  });
+
   // ---------- Provision fiscale ----------
   // Volontairement neutre : aucun taux n'est suggéré, aucune règle fiscale n'est
   // supposée. L'app se contente d'appliquer le taux qu'Amandine renseigne.
@@ -3100,6 +3369,11 @@
     remplirPeriodes();
     renderFiscal();
     renderRappel();
+    // Les menus d'apparence reflètent le choix enregistré.
+    var a = loadApparence();
+    choixSkin.value = a.skin;
+    choixMode.value = a.mode;
+    document.getElementById("apparenceNote").textContent = NOTES_THEME[a.skin] || "";
   }
 
   var resizeTimer = null;
