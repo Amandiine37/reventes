@@ -1006,6 +1006,36 @@
     font-weight:600;
   }
 
+  /* ---------- Statistiques par lieu d'achat ---------- */
+  .lieu-stats{display:flex;flex-direction:column;}
+  .lieu-ligne{
+    display:flex;flex-direction:column;gap:.15rem;
+    padding:.55rem 0;
+    border-bottom:1px solid var(--filet);
+  }
+  .lieu-ligne:last-child{border-bottom:none;}
+  .lieu-ligne:first-child{padding-top:0;}
+  .lieu-tete{
+    display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;
+  }
+  .lieu-nom{
+    font-family:var(--font-display);
+    font-size:.92rem;font-weight:600;color:var(--ink);
+    overflow-wrap:anywhere;
+  }
+  .lieu-benefice{
+    font-family:var(--font-display);
+    font-size:1rem;font-weight:600;
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .lieu-benefice.profit{color:var(--profit);}
+  .lieu-benefice.loss{color:var(--loss);}
+  .lieu-detail{
+    font-size:.72rem;color:var(--ink-muted);
+    display:flex;flex-wrap:wrap;gap:.1rem .5rem;
+  }
+  .lieu-detail .moyenne{font-weight:600;color:var(--accent-strong);}
+
   /* ---------- Apparence ---------- */
   .apparence-controls{display:flex;gap:.6rem;}
   .apparence-controls label{flex:1;min-width:0;}
@@ -1342,6 +1372,15 @@
 
       <div class="card">
         <div class="card-head">
+          <h2>Par lieu d'achat</h2>
+          <span class="hint">y retourner ou non</span>
+        </div>
+        <div id="lieuStats" class="lieu-stats"></div>
+        <p id="lieuEmpty" class="empty-hint" hidden>Renseigne le lieu d'achat de tes articles pour savoir où tu fais tes meilleures affaires.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <h2>Apparence</h2>
           <span class="hint">six thèmes</span>
         </div>
@@ -1472,6 +1511,7 @@
           <option value="nom-desc">Nom (Z → A)</option>
           <option value="benefice">Bénéfice décroissant</option>
           <option value="prix">Prix d'achat décroissant</option>
+          <option value="lieu">Lieu d'achat (A → Z)</option>
         </select>
         <span class="tri-compte" id="triCompte"></span>
       </div>
@@ -1517,8 +1557,8 @@
       </label>
 
       <label>
-        <span class="lbl">Acheté via</span>
-        <input type="text" id="fCanal" list="canalOptions" maxlength="60" placeholder="Ex. Vinted, vide grenier Lyon">
+        <span class="lbl">Lieu d'achat <small>(site ou endroit précis)</small></span>
+        <input type="text" id="fCanal" list="canalOptions" maxlength="60" placeholder="Ex. Vinted, vide grenier de Villandry">
         <datalist id="canalOptions"></datalist>
       </label>
 
@@ -1688,7 +1728,10 @@
   var CATEGORY_KEY = "revente_categories_v1";
   var CANAL_KEY = "revente_canaux_v1";
   var FISCAL_KEY = "revente_fiscal_v1";
-  var DEFAULT_CANAUX = ["Vinted","eBay","Le Bon Coin","Vide grenier","Vide maison","Brocante","Emmaüs","Particulier"];
+  // Les sites sont nommables tels quels ; pour un vide grenier ou une brocante,
+  // c'est le lieu précis qui a de la valeur (« Vide grenier de Villandry »),
+  // sans quoi la statistique par lieu ne distingue plus rien.
+  var DEFAULT_CANAUX = ["Vinted","eBay","Le Bon Coin","Vide grenier de ","Vide maison de ","Brocante de ","Emmaüs","Particulier"];
   var MARGE_CIBLE = 0.40; // prix conseillé = prix d'achat + 40 %
   var DEFAULT_CATEGORIES = ["Vêtements","Chaussures","Mobilier","Électronique","Jouets","Livres","Décoration","Autre"];
 
@@ -2040,6 +2083,68 @@
     });
   }
 
+  // Rentabilité par lieu d'achat : la question « est-ce que je retourne à ce
+  // vide grenier l'an prochain ? ». Les achats annulés sont exclus (ils n'ont
+  // jamais eu lieu) ; le bénéfice vient du journal, donc les ventes annulées
+  // par l'acheteur se neutralisent d'elles-mêmes.
+  function lieuAggregate(items){
+    var map = {};
+    function entree(lieu){
+      if(!map[lieu]) map[lieu] = {lieu:lieu, achetes:0, vendus:0, enStock:0, investi:0, benefice:0};
+      return map[lieu];
+    }
+    items.forEach(function(it){
+      if(estAnnule(it)) return;
+      var lieu = (it.canal || "").trim();
+      if(!lieu) return;
+      var e = entree(lieu);
+      e.achetes += quantiteDe(it);
+      e.investi += it.prixAchat;
+      if(isSold(it)) e.vendus += quantiteDe(it); else e.enStock += quantiteDe(it);
+    });
+    mouvements(items).forEach(function(m){
+      var lieu = (m.item.canal || "").trim();
+      if(!lieu) return;
+      entree(lieu).benefice += m.montant;
+    });
+    return Object.keys(map).map(function(k){ return map[k]; })
+      .sort(function(a,b){ return b.benefice - a.benefice || b.achetes - a.achetes; });
+  }
+
+  function renderLieuStats(items){
+    var wrap = document.getElementById("lieuStats");
+    var empty = document.getElementById("lieuEmpty");
+    var data = lieuAggregate(items);
+    wrap.innerHTML = "";
+    if(data.length === 0){ empty.hidden = false; return; }
+    empty.hidden = true;
+
+    data.forEach(function(d){
+      var row = document.createElement("div");
+      row.className = "lieu-ligne";
+      var detail = [
+        d.achetes + (d.achetes > 1 ? " articles" : " article"),
+        d.vendus + (d.vendus > 1 ? " vendus" : " vendu"),
+        fmtMoney(d.investi) + " investis"
+      ];
+      if(d.enStock > 0) detail.push(d.enStock + " en stock");
+      // Le bénéfice moyen par vente est le vrai repère pour décider d'y retourner.
+      var moyenne = d.vendus > 0
+        ? '<span class="moyenne">' + fmtMoney(d.benefice / d.vendus) + " / vente</span>"
+        : '<span class="moyenne">rien de vendu</span>';
+      row.innerHTML =
+        '<div class="lieu-tete">'+
+          '<span class="lieu-nom">'+escapeHtml(d.lieu)+'</span>'+
+          '<span class="lieu-benefice '+(d.benefice>=0?"profit":"loss")+'">'+fmtMoney(d.benefice)+'</span>'+
+        '</div>'+
+        '<div class="lieu-detail">'+
+          detail.map(function(t){ return "<span>"+escapeHtml(t)+"</span>"; }).join("")+
+          moyenne+
+        '</div>';
+      wrap.appendChild(row);
+    });
+  }
+
   function renderCategoryBars(items){
     var wrap = document.getElementById("categoryBars");
     var empty = document.getElementById("categoryEmpty");
@@ -2086,6 +2191,7 @@
     }
 
     renderCategoryBars(items);
+    renderLieuStats(items);
   }
 
   // ---------- List ----------
@@ -2130,6 +2236,15 @@
         };
       case "prix":
         return function(a, b){ return (b.prixAchat - a.prixAchat) || parNom(a, b); };
+      case "lieu":
+        // Les articles sans lieu renseigné ferment la marche.
+        return function(a, b){
+          var la = (a.canal || "").trim(), lb = (b.canal || "").trim();
+          if(!la && !lb) return parNom(a, b);
+          if(!la) return 1;
+          if(!lb) return -1;
+          return la.localeCompare(lb, "fr", {sensitivity:"base", numeric:true}) || parNom(a, b);
+        };
       default:
         return function(a, b){
           var da = a.dateRevente || a.dateAchat;
@@ -2864,7 +2979,7 @@
 
   function buildCsv(items){
     var lignes = [];
-    lignes.push(["Nom","Catégorie","Acheté via","Vendeur","Quantité","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut","Ventes annulées"].map(csvCell).join(";"));
+    lignes.push(["Nom","Catégorie","Lieu d'achat","Vendeur","Quantité","Prix d'achat","Date d'achat","Prix conseillé (+40%)","Prix de revente","Date de revente","Bénéfice","Mois de revente","Statut","Ventes annulées"].map(csvCell).join(";"));
 
     var tries = items.slice().sort(function(a,b){
       var da = a.dateRevente || a.dateAchat;
@@ -2932,6 +3047,21 @@
           csvCell(m.item.nom), csvCell(m.item.categorie),
           csvCell(m.venteDu), csvNum(m.prixRevente),
           csvCell(m.date), csvNum(m.montant)
+        ].join(";"));
+      });
+    }
+
+    // Rentabilité par lieu d'achat, pour décider où retourner.
+    var lieux = lieuAggregate(items);
+    if(lieux.length){
+      lignes.push("");
+      lignes.push(csvCell("PAR LIEU D'ACHAT"));
+      lignes.push(["Lieu","Articles achetés","Vendus","Encore en stock","Total investi","Bénéfice","Bénéfice moyen par vente"].map(csvCell).join(";"));
+      lieux.forEach(function(l){
+        lignes.push([
+          csvCell(l.lieu), l.achetes, l.vendus, l.enStock,
+          csvNum(l.investi), csvNum(l.benefice),
+          l.vendus > 0 ? csvNum(l.benefice / l.vendus) : ""
         ].join(";"));
       });
     }
