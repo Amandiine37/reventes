@@ -84,6 +84,17 @@ les unités parties, et le lot d'origine réduit d'autant. Le coût d'achat est
 réparti au centime près — la somme des parts est toujours exactement égale au
 prix payé (60 € en 7 donnent 8,58 + 8,57 × 6).
 
+## Les photos
+
+**Choisir une photo** ouvre le sélecteur du téléphone : galerie, fichiers ou
+appareil photo, au choix. Le champ ne porte **pas** l'attribut `capture` — avec
+lui, Android ouvrirait directement l'appareil photo sans laisser le choix
+(corrigé le 05/10/2026).
+
+Les images sont réduites à 480 px de large et ré-encodées en JPEG avant d'être
+stockées : une photo de téléphone de 3000 × 2000 tombe ainsi à environ 5 Ko, ce
+qui compte puisque tout tient dans le stockage du navigateur.
+
 ## La rentabilité par lieu d'achat
 
 Répond à la question : *« ce vide grenier vaut-il le déplacement l'an prochain ? »*

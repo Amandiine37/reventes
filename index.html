@@ -1576,7 +1576,10 @@
           <button type="button" class="btn-line" id="photoPickBtn">Choisir une photo</button>
           <button type="button" class="btn-line" id="photoRemoveBtn" hidden>Retirer la photo</button>
         </div>
-        <input type="file" id="fPhoto" accept="image/*" capture="environment">
+        <!-- Pas d'attribut « capture » : il forcerait l'ouverture directe de
+             l'appareil photo. Sans lui, le téléphone propose au choix la
+             galerie, les fichiers ou l'appareil photo. -->
+        <input type="file" id="fPhoto" accept="image/*">
       </div>
 
       <div class="field-row">
